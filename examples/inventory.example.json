@@ -1,0 +1,55 @@
+{
+  "version": 1,
+  "settings": {
+    "default_user": "deploy",
+    "default_key": "~/.ssh/id_ed25519",
+    "terminal": "auto",
+    "theme": "system",
+    "font_size": 11,
+    "close_to_background": true,
+    "background_hint_shown": false
+  },
+  "servers": [
+    {
+      "name": "bastion",
+      "host": "203.0.113.10",
+      "hostname": "bastion-01",
+      "group": "Jump hosts",
+      "description": "Public jump host for the private VPC servers"
+    },
+    {
+      "name": "vpc-app-01",
+      "host": "10.0.1.11",
+      "hostname": "app-01",
+      "jump": "bastion",
+      "group": "Production",
+      "description": "Application server, reached through the bastion"
+    },
+    {
+      "name": "vpc-db-01",
+      "host": "10.0.1.21",
+      "hostname": "db-01",
+      "user": "dbadmin",
+      "key_path": "~/.ssh/db_key",
+      "jump": "bastion",
+      "group": "Production",
+      "description": "Primary database, own user and key"
+    },
+    {
+      "name": "office-monitoring",
+      "host": "192.168.50.5",
+      "hostname": "monitoring",
+      "requires_vpn": true,
+      "group": "Office",
+      "description": "Private network, connect the VPN first"
+    },
+    {
+      "name": "staging-web",
+      "host": "staging.example.com",
+      "port": 2222,
+      "group": "Staging",
+      "description": "Custom SSH port, keeps the connection alive",
+      "extra_options": ["ServerAliveInterval=30", "ServerAliveCountMax=3"]
+    }
+  ]
+}
