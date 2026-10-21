@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=SSH Manager
+Comment=Pick a server and open an SSH session
+Exec=ssh-manager
+Icon=ssh-manager
+Terminal=false
+Categories=Network;RemoteAccess;Utility;
+Keywords=ssh;server;terminal;remote;
+StartupWMClass=ssh-manager

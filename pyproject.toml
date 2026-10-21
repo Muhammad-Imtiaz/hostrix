@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ssh-manager"
+version = "0.1.0"
+description = "GUI inventory and launcher for SSH servers"
+requires-python = ">=3.10"
+dependencies = ["PySide6-Essentials>=6.5"]
+
+[project.scripts]
+ssh-manager = "sshmgr.__main__:main"
+
+[tool.setuptools]
+packages = ["sshmgr"]
+
+[tool.setuptools.package-data]
+sshmgr = ["assets/*"]
