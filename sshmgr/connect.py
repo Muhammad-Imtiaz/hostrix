@@ -101,6 +101,15 @@ def self_command() -> list[str]:
     return [sys.executable, "-m", "sshmgr"]
 
 
+def child_env() -> dict:
+    """Environment for re-launching ourselves as an independent process.
+
+    A PyInstaller binary would otherwise hand its private unpack folder to the
+    child, which breaks once the parent exits.
+    """
+    return {**os.environ, "PYINSTALLER_RESET_ENVIRONMENT": "1"}
+
+
 def is_wsl() -> bool:
     return sys.platform.startswith("linux") and "microsoft" in os.uname().release.lower()
 
@@ -156,7 +165,7 @@ def open_in_terminal(inv: Inventory, s: Server) -> list[str]:
     """Open a new terminal window running `ssh-manager connect <name>`."""
     argv = terminal_argv(self_command() + ["connect", s.name], s.name, inv.settings.terminal)
     subprocess.Popen(argv, start_new_session=True, stdin=subprocess.DEVNULL,
-                     stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                     stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, env=child_env())
     return argv
 
 

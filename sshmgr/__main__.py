@@ -1,6 +1,9 @@
 """Entry point: GUI by default, plus a few CLI helpers.
 
-    ssh-manager                      open the GUI
+    ssh-manager                      open the GUI (detaches from the terminal)
+    ssh-manager --hidden             start in the background without a window
+    ssh-manager --foreground         keep the GUI attached to the terminal
+    ssh-manager show | quit          show / stop the running instance
     ssh-manager connect NAME         ssh into NAME in the current terminal
     ssh-manager list                 print the inventory
     ssh-manager command NAME         print the full ssh command for NAME
@@ -69,8 +72,12 @@ def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(prog="ssh-manager", description="SSH server inventory and launcher")
     p.add_argument("--version", action="version", version=__version__)
     p.add_argument("--inventory", type=Path, help="path to inventory.json")
+    p.add_argument("--hidden", action="store_true", help="start in the background without showing the window")
+    p.add_argument("--foreground", action="store_true", help="do not detach from the terminal")
     sub = p.add_subparsers(dest="cmd")
     sub.add_parser("gui")
+    sub.add_parser("show")
+    sub.add_parser("quit")
     c = sub.add_parser("connect")
     c.add_argument("name")
     sub.add_parser("list")
@@ -87,9 +94,23 @@ def main(argv: list[str] | None = None) -> int:
 
     inv = Inventory(args.inventory)
 
+    if args.cmd in ("show", "quit"):
+        from .background import send_command
+        if send_command(args.cmd):
+            return 0
+        if args.cmd == "quit":
+            print("SSH Manager is not running.")
+            return 0
+        args.cmd = None  # nothing to show: start it
     if args.cmd in (None, "gui"):
+        if not args.foreground and sys.stdin is not None and sys.stdin.isatty():
+            # started from a terminal: give the prompt back immediately
+            from .background import detach
+            gui_args = (["--inventory", str(inv.path)] if args.inventory else []) + (
+                ["--hidden"] if args.hidden else [])
+            return detach(gui_args)
         from .gui import run
-        return run(inv)
+        return run(inv, hidden=args.hidden)
 
     from .connect import display_command, run_interactive
 

@@ -61,6 +61,10 @@ class Settings:
     # "auto" or a command template containing {cmd} (shell-quoted command) or
     # {args} (argument list appended), e.g. "gnome-terminal -- {args}".
     terminal: str = "auto"
+    theme: str = "system"              # system | light | dark
+    font_size: int = 11                # points
+    close_to_background: bool = True   # closing the window keeps the app running
+    background_hint_shown: bool = False
 
 
 class InventoryError(ValueError):

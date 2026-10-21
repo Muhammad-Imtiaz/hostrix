@@ -10,16 +10,30 @@ so you don't have to remember IPs, hostnames, users, keys or jump hosts.
 - **Test** / **Check all**: TCP check of port 22 on the first hop (hints "VPN connected?" for VPN servers)
 - **Fetch hostname(s)**: logs in non-interactively and fills in each server's real hostname
 - Import from `~/.ssh/config` or JSON, export to JSON
+- Web-dashboard style UI: light / dark / system theme, adjustable font size, right-click menu, toasts
+- Runs in the background: closing the window keeps it running; run `ssh-manager` again to bring it back
 
 ## Install (Ubuntu)
 
 ```bash
-packaging/build.sh                                   # builds dist/ssh-manager + .deb
-sudo apt install ./dist/ssh-manager_0.1.0_amd64.deb
+packaging/build.sh                                   # builds dist/ssh-manager/ + .deb
+sudo apt install ./dist/ssh-manager_0.2.0_amd64.deb
 ssh-manager                                          # or launch "SSH Manager" from the app menu
 ```
 
-The `.deb` contains one self-contained binary (Python and Qt bundled), so nothing else is needed.
+The `.deb` installs a self-contained app (Python and Qt bundled) to `/opt/ssh-manager`,
+with `ssh-manager` on the PATH, so nothing else is needed.
+
+## Background mode
+
+- `ssh-manager` started from a terminal detaches right away and gives you the prompt back.
+- Closing the window keeps it running (turn off in Settings). Run `ssh-manager` again, or open it from the
+  app menu, to bring the same window back. Only one instance runs at a time.
+- `ssh-manager --hidden` starts it without a window; `ssh-manager quit` stops it.
+- On desktops with a system tray, a tray icon shows/hides the window and has a quick-connect menu.
+  On Linux desktops (not WSL), Settings can start it in the background when you log in.
+- `--foreground` keeps it attached to the terminal (useful for debugging); otherwise logs go to
+  `~/.config/ssh-manager/ssh-manager.log`.
 
 ## Inventory
 
@@ -46,6 +60,7 @@ You can also set a custom template, such as `gnome-terminal -- {args}` or `xterm
 ## CLI
 
 ```bash
+ssh-manager show | quit           # show / stop the background instance
 ssh-manager connect NAME          # ssh in the current terminal
 ssh-manager list
 ssh-manager command NAME          # print the full ssh command
@@ -58,7 +73,7 @@ ssh-manager import-ssh-config [~/.ssh/config]
 
 ```bash
 python3 -m venv .venv && .venv/bin/pip install -e .
-.venv/bin/python -m sshmgr
+.venv/bin/python -m sshmgr --foreground
 ```
 
 macOS / Windows: run `packaging/build.sh` on that OS (on Windows use Git Bash, or run the

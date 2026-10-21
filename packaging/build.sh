@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Build a self-contained binary (PyInstaller) and, on Linux, a .deb package.
-#   packaging/build.sh            -> dist/ssh-manager and dist/ssh-manager_<ver>_<arch>.deb
+#   packaging/build.sh   -> dist/ssh-manager/ (app folder) and, on Linux, dist/ssh-manager_<ver>_<arch>.deb
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -14,20 +14,22 @@ fi
 .venv/bin/pip install -q -e . pyinstaller
 
 rm -rf build dist
-.venv/bin/pyinstaller --noconfirm --clean --onefile --name ssh-manager \
+# --onedir starts much faster than --onefile (nothing to unpack on every launch / Connect)
+.venv/bin/pyinstaller --noconfirm --clean --onedir --windowed --name ssh-manager \
     --add-data "sshmgr/assets:sshmgr/assets" \
     --exclude-module tkinter \
     --paths "$ROOT" --hidden-import sshmgr.gui \
     packaging/launcher.py
 
-[[ "$(uname -s)" == "Linux" ]] || { echo "Built dist/ssh-manager"; exit 0; }
+[[ "$(uname -s)" == "Linux" ]] || { echo "Built dist/ssh-manager/"; exit 0; }
 
 # ---- .deb ---------------------------------------------------------------
 ARCH="$(dpkg --print-architecture)"
 PKG="build/deb/ssh-manager_${VERSION}_${ARCH}"
-mkdir -p "$PKG/DEBIAN" "$PKG/usr/bin" "$PKG/usr/share/applications" \
+mkdir -p "$PKG/DEBIAN" "$PKG/opt" "$PKG/usr/bin" "$PKG/usr/share/applications" \
          "$PKG/usr/share/icons/hicolor/scalable/apps" "$PKG/usr/share/doc/ssh-manager"
-install -m 755 dist/ssh-manager "$PKG/usr/bin/ssh-manager"
+cp -a dist/ssh-manager "$PKG/opt/ssh-manager"
+ln -s /opt/ssh-manager/ssh-manager "$PKG/usr/bin/ssh-manager"
 install -m 644 packaging/ssh-manager.desktop "$PKG/usr/share/applications/"
 install -m 644 sshmgr/assets/ssh-manager.svg "$PKG/usr/share/icons/hicolor/scalable/apps/"
 install -m 644 README.md "$PKG/usr/share/doc/ssh-manager/"
@@ -45,4 +47,4 @@ Description: GUI inventory and launcher for SSH servers
  description) and open an SSH session in a new terminal with one click.
 EOF
 dpkg-deb --build --root-owner-group "$PKG" "dist/ssh-manager_${VERSION}_${ARCH}.deb"
-echo "Built dist/ssh-manager and dist/ssh-manager_${VERSION}_${ARCH}.deb"
+echo "Built dist/ssh-manager/ and dist/ssh-manager_${VERSION}_${ARCH}.deb"

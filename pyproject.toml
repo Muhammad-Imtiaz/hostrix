@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ssh-manager"
-version = "0.1.0"
+version = "0.2.0"
 description = "GUI inventory and launcher for SSH servers"
 requires-python = ">=3.10"
 dependencies = ["PySide6-Essentials>=6.5"]
