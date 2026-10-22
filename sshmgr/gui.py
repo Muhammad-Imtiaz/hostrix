@@ -303,7 +303,41 @@ def dialog_buttons(dialog: QDialog, save_text: str, on_save) -> QHBoxLayout:
     save.clicked.connect(on_save)
     row.addWidget(cancel)
     row.addWidget(save)
+    row.setContentsMargins(24, 0, 24, 0)
     return row
+
+
+def scroll_body(dialog: QDialog) -> tuple[QVBoxLayout, QWidget]:
+    """Dialog content inside a scroll area, so large fonts scroll instead of squashing the fields.
+
+    Returns the content layout and its widget; the caller adds the buttons to dialog.layout().
+    """
+    outer = QVBoxLayout(dialog)
+    outer.setContentsMargins(0, 0, 0, 18)
+    outer.setSpacing(12)
+    scroll = QScrollArea()
+    scroll.setWidgetResizable(True)
+    scroll.setFrameShape(QFrame.NoFrame)
+    scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+    body = QWidget()
+    content = QVBoxLayout(body)
+    content.setContentsMargins(24, 22, 24, 4)
+    content.setSpacing(14)
+    scroll.setWidget(body)
+    outer.addWidget(scroll, 1)
+    return content, body
+
+
+def fit_dialog(dialog: QDialog, body: QWidget, width: int):
+    """Size a dialog for the current font, never larger than the screen."""
+    k = QApplication.font().pointSize() / 11
+    screen = (dialog.screen() or QApplication.primaryScreen()).availableGeometry()
+    w = min(int(width * k), screen.width() - 40)
+    dialog.setMinimumWidth(min(int(width * 0.7 * k), w))
+    body.setMinimumWidth(0)
+    h = body.heightForWidth(w) if body.hasHeightForWidth() else body.sizeHint().height()
+    h = max(h, body.sizeHint().height()) + int(90 * k)  # plus the button row
+    dialog.resize(w, min(h, int(screen.height() * 0.9)))
 
 
 # ---- dialogs ---------------------------------------------------------
@@ -313,7 +347,6 @@ class ServerDialog(QDialog):
         self.inv = inv
         self.original = server
         self.setWindowTitle(title)
-        self.setMinimumWidth(640)
         s = server or Server(name="", host="")
 
         self.name = QLineEdit(s.name)
@@ -355,9 +388,7 @@ class ServerDialog(QDialog):
         self.description.setFixedHeight(84)
         self.description.setPlaceholderText("What runs here, environment, owner…")
 
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(24, 22, 24, 20)
-        layout.setSpacing(14)
+        layout, body = scroll_body(self)
         layout.addWidget(label(title, "PageTitle"))
         layout.addWidget(form_section("Connection", [("Name *", self.name), ("Host / IP *", self.host),
                                                      ("User", self.user), ("Port", self.port),
@@ -366,7 +397,8 @@ class ServerDialog(QDialog):
                                                  ("Extra options", self.extra)]))
         layout.addWidget(form_section("Details", [("Hostname", self.hostname), ("Group", self.group),
                                                   ("Description", self.description)]))
-        layout.addLayout(dialog_buttons(self, "Save server", self._accept))
+        self.layout().addLayout(dialog_buttons(self, "Save server", self._accept))
+        fit_dialog(self, body, 640)
         self.result_server: Server | None = None
 
     def _browse_key(self):
@@ -405,7 +437,6 @@ class SettingsDialog(QDialog):
         super().__init__(parent)
         self.inv = inv
         self.setWindowTitle("Settings")
-        self.setMinimumWidth(660)
         st = inv.settings
 
         self.theme = QComboBox()
@@ -434,9 +465,7 @@ class SettingsDialog(QDialog):
             self.autostart.setEnabled(False)
             self.autostart.setToolTip("Available on Linux desktops (not WSL)")
 
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(24, 22, 24, 20)
-        layout.setSpacing(14)
+        layout, body = scroll_body(self)
         layout.addWidget(label("Settings", "PageTitle"))
         layout.addWidget(form_section("Appearance", [("Theme", self.theme), ("Font size", self.font_size)]))
         layout.addWidget(form_section(
@@ -451,7 +480,8 @@ class SettingsDialog(QDialog):
         info = label(f"Inventory: {inv.path}\nFor ~/.ssh/config:  Include {inv.ssh_config_path}", muted=True, wrap=True)
         info.setTextInteractionFlags(Qt.TextSelectableByMouse)
         layout.addWidget(info)
-        layout.addLayout(dialog_buttons(self, "Save settings", self.accept))
+        self.layout().addLayout(dialog_buttons(self, "Save settings", self.accept))
+        fit_dialog(self, body, 660)
 
     def apply(self):
         st = self.inv.settings

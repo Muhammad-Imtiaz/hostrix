@@ -18,7 +18,7 @@ so you don't have to remember IPs, hostnames, users, keys or jump hosts.
 
 ```bash
 packaging/build.sh                                   # builds dist/ssh-manager/ + .deb
-sudo apt install ./dist/ssh-manager_0.3.0_amd64.deb
+sudo apt install ./dist/ssh-manager_0.3.1_amd64.deb
 ssh-manager                                          # or launch "SSH Manager" from the app menu
 ```
 
