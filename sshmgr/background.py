@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import getpass
+import hashlib
 import os
 import shlex
 import subprocess
@@ -12,7 +13,8 @@ from pathlib import Path
 from .connect import child_env, is_wsl, self_command
 from .inventory import config_dir
 
-SOCKET_NAME = f"ssh-manager-{getpass.getuser()}"
+# one running instance per user and inventory folder (a test copy with SSH_MANAGER_HOME won't collide)
+SOCKET_NAME = f"ssh-manager-{getpass.getuser()}-{hashlib.sha1(str(config_dir()).encode()).hexdigest()[:8]}"
 AUTOSTART_FILE = Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config")) / "autostart" / "ssh-manager.desktop"
 
 

@@ -8,19 +8,19 @@ import sys
 from dataclasses import asdict, replace
 from pathlib import Path
 
-from PySide6.QtCore import (QAbstractTableModel, QFileSystemWatcher, QModelIndex, QObject, QRect, QRunnable, QSize,
-                            QSortFilterProxyModel, Qt, QThreadPool, QTimer, QUrl, Signal)
-from PySide6.QtGui import QColor, QIntValidator, QDesktopServices, QFont, QFontMetrics, QIcon, QKeySequence, QPainter, QShortcut
+from PySide6.QtCore import (QAbstractTableModel, QEvent, QFileSystemWatcher, QModelIndex, QObject, QRect, QRunnable,
+                            QSettings, QSize, QSortFilterProxyModel, Qt, QThreadPool, QTimer, QUrl, Signal)
+from PySide6.QtGui import QColor, QDesktopServices, QIntValidator, QTextOption, QFont, QFontMetrics, QIcon, QKeySequence, QPainter, QShortcut
 from PySide6.QtNetwork import QLocalServer
 from PySide6.QtWidgets import (QAbstractItemView, QApplication, QCheckBox, QComboBox, QDialog, QFileDialog,
                                QFormLayout, QFrame, QGridLayout, QHBoxLayout, QHeaderView, QLabel, QLineEdit,
                                QListWidget, QListWidgetItem, QMainWindow, QMenu, QMessageBox, QPlainTextEdit,
-                               QPushButton, QScrollArea, QStyle, QStyledItemDelegate,
+                               QPushButton, QScrollArea, QSizePolicy, QSplitter, QStyle, QStyledItemDelegate,
                                QStyleOptionViewItem, QSystemTrayIcon, QTableView, QVBoxLayout, QWidget)
 
 from . import APP_NAME, __version__, background, theme
 from .connect import display_command, fetch_hostname, key_exists, open_in_terminal, tcp_reachable
-from .inventory import Inventory, InventoryError, Server, parse_ssh_config
+from .inventory import Inventory, InventoryError, Server, config_dir, parse_ssh_config
 
 ICON_PATH = Path(__file__).with_name("assets") / "ssh-manager.svg"
 ALL_GROUPS = "All servers"
@@ -84,7 +84,10 @@ class Job(QRunnable):
             ok, msg = fn(self.inv, self.server)
         except Exception as e:  # never let a worker crash the app
             ok, msg = False, str(e)
-        self.signals.done.emit(self.kind, self.server.name, ok, msg)
+        try:
+            self.signals.done.emit(self.kind, self.server.name, ok, msg)
+        except RuntimeError:  # the window went away while this job ran
+            pass
 
 
 # ---- table model ------------------------------------------------------
@@ -260,12 +263,16 @@ class Toast(QLabel):
 
     def show_message(self, text: str, ms: int = 2600):
         self.setText(text)
-        self.adjustSize()
-        par = self.parentWidget()
-        self.move((par.width() - self.width()) // 2, par.height() - self.height() - 28)
+        self.reposition()
         self.raise_()
         self.show()
         self.timer.start(ms)
+
+    def reposition(self):
+        par = self.parentWidget()
+        self.setMaximumWidth(max(par.width() - 60, 200))
+        self.adjustSize()
+        self.move((par.width() - self.width()) // 2, par.height() - self.height() - 32)
 
 
 def form_section(title: str, rows: list, note: str | None = None) -> Card:
@@ -420,7 +427,7 @@ class SettingsDialog(QDialog):
         self.terminal.setCurrentText(st.terminal or "auto")
 
         self.background = QCheckBox("Keep running in the background when the window is closed")
-        self.background.setChecked(st.close_to_background)
+        self.background.setChecked(st.keep_running_on_close)
         self.autostart = QCheckBox("Start in the background when I log in")
         self.autostart.setChecked(background.autostart_enabled())
         if not background.autostart_supported():
@@ -438,8 +445,9 @@ class SettingsDialog(QDialog):
             "command appended, {cmd} = one quoted string, {title} = server name."))
         layout.addWidget(form_section(
             "Background", [("", self.background), ("", self.autostart)],
-            "While in the background, run ssh-manager again (or open it from the app menu) to bring the "
-            "window back. “ssh-manager quit” stops it."))
+            "When off, the close button quits the app. Use “Run in background” in the sidebar to hide it "
+            "instead. Run ssh-manager again (or open it from the app menu) to bring the window back; "
+            "“ssh-manager quit” stops it."))
         info = label(f"Inventory: {inv.path}\nFor ~/.ssh/config:  Include {inv.ssh_config_path}", muted=True, wrap=True)
         info.setTextInteractionFlags(Qt.TextSelectableByMouse)
         layout.addWidget(info)
@@ -452,7 +460,7 @@ class SettingsDialog(QDialog):
         st.default_user = self.user.text().strip()
         st.default_key = self.key.text().strip()
         st.terminal = self.terminal.currentText().strip() or "auto"
-        st.close_to_background = self.background.isChecked()
+        st.keep_running_on_close = self.background.isChecked()
         if background.autostart_supported() and self.autostart.isChecked() != background.autostart_enabled():
             background.set_autostart(self.autostart.isChecked())
 
@@ -464,7 +472,7 @@ class Details(Card):
     def __init__(self, colors: dict):
         super().__init__()
         self.c = colors
-        self.setFixedWidth(400)
+        self.setMinimumWidth(260)
 
         self.name = label("", "DetailName", wrap=True)
         self.host_line = label("", "DetailHost", wrap=True)
@@ -493,7 +501,8 @@ class Details(Card):
         self.command.setObjectName("Code")
         self.command.setReadOnly(True)
         self.command.setFont(theme.mono_font(derived_font(-1).pointSize()))
-        self.command.setFixedHeight(136)
+        self.command.setWordWrapMode(QTextOption.WrapAtWordBoundaryOrAnywhere)
+        self.command.setFixedHeight(QFontMetrics(self.command.font()).lineSpacing() * 6 + 28)
         self.copy_btn = button("Copy", "ghost", "copy", colors)
 
         self.connect_btn = button("Connect", "success", "terminal", colors)
@@ -508,13 +517,11 @@ class Details(Card):
         cmd_head.addWidget(label("SSH COMMAND", "FieldLabel"))
         cmd_head.addStretch()
         cmd_head.addWidget(self.copy_btn)
-        row1 = QHBoxLayout()
-        row1.addWidget(self.test_btn)
-        row1.addWidget(self.fetch_btn)
-        row2 = QHBoxLayout()
-        row2.addWidget(self.edit_btn)
-        row2.addWidget(self.dup_btn)
-        row2.addWidget(self.delete_btn)
+        actions = QGridLayout()
+        actions.setSpacing(8)
+        for i, b in enumerate((self.test_btn, self.fetch_btn, self.edit_btn, self.dup_btn)):
+            actions.addWidget(b, i // 2, i % 2)
+        actions.addWidget(self.delete_btn, 2, 0, 1, 2)
         sep = QFrame()
         sep.setFixedHeight(1)
         sep.setStyleSheet(f"background: {colors['border']};")
@@ -524,7 +531,7 @@ class Details(Card):
         lay.setContentsMargins(0, 0, 6, 0)
         lay.setSpacing(12)
         for item in (self.name, self.host_line, self.badges, self.status, sep, grid, cmd_head, self.command,
-                     self.connect_btn, row1, row2):
+                     self.connect_btn, actions):
             if item is self.connect_btn:
                 lay.addSpacing(4)
             lay.addWidget(item) if isinstance(item, QWidget) else lay.addLayout(item)
@@ -536,6 +543,7 @@ class Details(Card):
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
         scroll.setFrameShape(QFrame.NoFrame)
+        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)  # wrap content to the panel width
         scroll.setWidget(self.body)
         outer = QVBoxLayout(self)
         outer.setContentsMargins(24, 22, 18, 22)
@@ -589,11 +597,17 @@ class Details(Card):
 
 # ---- main window -----------------------------------------------------
 class MainWindow(QMainWindow):
+    rebuild_requested = Signal()  # theme or font changed: replace this window with a fresh one
+
     def __init__(self, inv: Inventory, colors: dict):
         super().__init__()
         self.inv = inv
         self.c = colors
+        self.k = inv.settings.font_size / 11  # scale for sizes that should follow the font
+        self.ui = QSettings(str(config_dir() / "ui.ini"), QSettings.IniFormat)
         self._quitting = False
+        self._replacing = False
+        self._batches: dict[str, dict] = {}
         self.setWindowTitle(APP_NAME)
         screen = QApplication.primaryScreen().availableGeometry()
         self.resize(min(1640, int(screen.width() * 0.92)), min(920, int(screen.height() * 0.9)))
@@ -611,10 +625,21 @@ class MainWindow(QMainWindow):
         h = QHBoxLayout(root)
         h.setContentsMargins(0, 0, 0, 0)
         h.setSpacing(0)
-        h.addWidget(self._build_sidebar())
-        h.addWidget(self._build_content(), 1)
+        # drag the handles to resize the sidebar, server list and details panel
+        self.outer = QSplitter(Qt.Horizontal)
+        self.outer.setObjectName("OuterSplit")
+        self.outer.setHandleWidth(4)
+        self.outer.addWidget(self._build_sidebar())
+        self.outer.addWidget(self._build_content())
+        self.outer.setCollapsible(0, True)  # the sidebar can be dragged shut
+        self.outer.setCollapsible(1, False)
+        self.outer.setStretchFactor(1, 1)
+        side_w = min(int(250 * self.k), 300)
+        self.outer.setSizes([side_w, self.width() - side_w])
+        h.addWidget(self.outer)
         self.setCentralWidget(root)
         self.toast = Toast(root)
+        self._restore_ui_state()
 
         self._build_shortcuts()
         self.tray = self._build_tray()
@@ -623,19 +648,80 @@ class MainWindow(QMainWindow):
         # pick up edits made outside the GUI (CLI, text editor, another window).
         # Watch the folder: saves replace the file, which drops a file watch.
         self._own_mtime = self._inventory_mtime()
-        self.watcher = QFileSystemWatcher([str(inv.path.parent)] if inv.path.parent.exists() else [])
+        self.watcher = QFileSystemWatcher([str(inv.path.parent)] if inv.path.parent.exists() else [], self)
         self._reload_timer = QTimer(self, singleShot=True, interval=300, timeout=self._reload_from_disk)
         self.watcher.directoryChanged.connect(lambda _: self._reload_timer.start())
 
         # fill the status dots right away (a quick TCP check, no login)
         QTimer.singleShot(400, lambda: self.run_jobs("check", self.inv.servers, quiet=True))
 
+    # ---- remembered layout -------------------------------------------
+    def _header_key(self) -> str:
+        return f"table/header_{self.inv.settings.font_size}"  # column widths depend on the font
+
+    def _restore_ui_state(self):
+        geometry = self.ui.value("window/geometry")
+        if geometry:
+            self.restoreGeometry(geometry)
+        for split, key in ((self.outer, "layout/outer"), (self.inner, "layout/inner")):
+            state = self.ui.value(key)
+            if state:
+                split.restoreState(state)
+        header = self.ui.value(self._header_key())
+        if header:
+            self.table.horizontalHeader().restoreState(header)
+
+    def save_ui_state(self):
+        self.ui.setValue("window/geometry", self.saveGeometry())
+        self.ui.setValue("layout/outer", self.outer.saveState())
+        self.ui.setValue("layout/inner", self.inner.saveState())
+        self.ui.setValue(self._header_key(), self.table.horizontalHeader().saveState())
+        self.ui.sync()
+
+    def eventFilter(self, obj, event):
+        if obj is self.content and event.type() == QEvent.Resize:
+            self._fit_header()
+        return super().eventFilter(obj, event)
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        if self.toast.isVisible():
+            self.toast.reposition()
+
+    def _fit_header(self):
+        """One header row when there is room; otherwise move the search box to its own row."""
+        needed = (self.titles_box.sizeHint().width() + int(300 * self.k) + self.check_btn.sizeHint().width()
+                  + self.add_btn.sizeHint().width() + 90)
+        self._layout_header(self.content.width() >= needed)
+
+    def _layout_header(self, wide: bool):
+        if wide == self._header_wide:
+            return
+        self._header_wide = wide
+        while self.header.count():
+            self.header.takeAt(0)
+        if wide:
+            self.search.setMaximumWidth(int(460 * self.k))
+            self.header.addWidget(self.titles_box, 0, 0)
+            self.header.addWidget(self.search, 0, 1)
+            self.header.addWidget(self.check_btn, 0, 2)
+            self.header.addWidget(self.add_btn, 0, 3)
+            self.header.setColumnStretch(1, 1)
+        else:
+            self.header.setColumnStretch(1, 0)
+            self.search.setMaximumWidth(16777215)
+            self.header.addWidget(self.titles_box, 0, 0)
+            self.header.addWidget(self.check_btn, 0, 2)
+            self.header.addWidget(self.add_btn, 0, 3)
+            self.header.addWidget(self.search, 1, 0, 1, 4)
+        self.header.setColumnStretch(0, 1)
+
     # ---- layout ------------------------------------------------------
     def _build_sidebar(self) -> QWidget:
         side = QWidget()
         side.setObjectName("Sidebar")
         side.setAttribute(Qt.WA_StyledBackground, True)
-        side.setFixedWidth(260)
+        side.setMinimumWidth(int(150 * self.k))
         lay = QVBoxLayout(side)
         lay.setContentsMargins(16, 22, 16, 16)
         lay.setSpacing(6)
@@ -647,10 +733,11 @@ class MainWindow(QMainWindow):
         brand.addWidget(logo)
         names = QVBoxLayout()
         names.setSpacing(0)
-        names.addWidget(label(APP_NAME, "Brand"))
-        names.addWidget(label(f"Version {__version__}", "BrandSub"))
-        brand.addLayout(names)
-        brand.addStretch()
+        for text, name in ((APP_NAME, "Brand"), (f"Version {__version__}", "BrandSub")):
+            lbl = label(text, name)
+            lbl.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
+            names.addWidget(lbl)
+        brand.addLayout(names, 1)
         lay.addLayout(brand)
         lay.addSpacing(24)
         lay.addWidget(label("GROUPS", "SideHeading"))
@@ -666,6 +753,7 @@ class MainWindow(QMainWindow):
             b = QPushButton(f"  {text}")
             b.setObjectName("SideButton")
             b.setCursor(Qt.PointingHandCursor)
+            b.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Fixed)  # let the sidebar get narrower than the text
             b.setIcon(theme.icon(icon_name, self.c["sidebar_text"]))
             if slot:
                 b.clicked.connect(slot)
@@ -682,47 +770,52 @@ class MainWindow(QMainWindow):
         more.setMenu(menu)
         lay.addWidget(more)
         lay.addWidget(side_button("Settings", "settings", self.open_settings))
+        run_bg = side_button("Run in background", "background", self.hide_to_background)
+        run_bg.setToolTip("Hide the window but keep the app running (run ssh-manager to bring it back)")
+        lay.addWidget(run_bg)
         lay.addWidget(side_button("Quit", "power", self.quit_app))
         return side
 
     def _build_content(self) -> QWidget:
-        content = QWidget()
+        self.content = content = QWidget()
         lay = QVBoxLayout(content)
         lay.setContentsMargins(28, 24, 28, 24)
         lay.setSpacing(18)
 
-        header = QHBoxLayout()
-        header.setSpacing(10)
-        titles = QVBoxLayout()
+        # the header rearranges itself (see _layout_header): one row when wide, search below when narrow
+        self.header = QGridLayout()
+        self.header.setHorizontalSpacing(10)
+        self.header.setVerticalSpacing(12)
+        self.titles_box = QWidget()
+        titles = QVBoxLayout(self.titles_box)
+        titles.setContentsMargins(0, 0, 0, 0)
         titles.setSpacing(2)
         self.title = label(ALL_GROUPS, "PageTitle")
-        self.subtitle = label("", "PageSub")
+        self.subtitle = label("", "PageSub", wrap=True)
         titles.addWidget(self.title)
         titles.addWidget(self.subtitle)
-        header.addLayout(titles)
-        header.addStretch()
         self.search = QLineEdit()
         self.search.setObjectName("Search")
         self.search.setPlaceholderText("Search servers…   (Ctrl+F)")
         self.search.setClearButtonEnabled(True)
         self.search.addAction(theme.icon("search", self.c["faint"]), QLineEdit.LeadingPosition)
-        self.search.setMinimumWidth(380)
+        self.search.setMinimumWidth(int(170 * self.k))
+        self.search.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.search.textChanged.connect(self._search_changed)
         self.search.returnPressed.connect(self._search_enter)
-        header.addWidget(self.search)
-        check = button("Check all", "", "pulse", self.c)
+        self.check_btn = check = button("Check all", "", "pulse", self.c)
         check.setToolTip("Check port 22 on every visible server (Ctrl+T)")
         check.clicked.connect(lambda: self.run_jobs("check", self.visible_servers()))
-        add = button("Add server", "primary", "plus", self.c)
+        self.add_btn = add = button("Add server", "primary", "plus", self.c)
         add.setToolTip("Ctrl+N")
         add.clicked.connect(self.add_server)
-        header.addWidget(check)
-        header.addWidget(add)
-        lay.addLayout(header)
+        self._header_wide: bool | None = None
+        self._layout_header(False)  # start compact; _fit_header widens it once the real width is known
+        content.installEventFilter(self)
+        lay.addLayout(self.header)
 
-        body = QHBoxLayout()
-        body.setSpacing(18)
         table_card = Card()
+        table_card.setMinimumWidth(int(220 * self.k))
         tl = QVBoxLayout(table_card)
         tl.setContentsMargins(4, 4, 4, 4)
         self.table = QTableView()
@@ -737,7 +830,8 @@ class MainWindow(QMainWindow):
         self.table.setMouseTracking(True)
         self.table.setWordWrap(False)
         self.table.verticalHeader().setVisible(False)
-        self.table.verticalHeader().setDefaultSectionSize(58)
+        fm = QFontMetrics(QApplication.font())
+        self.table.verticalHeader().setDefaultSectionSize(fm.height() * 2 + int(20 * self.k))
         self.table.setHorizontalScrollMode(QAbstractItemView.ScrollPerPixel)
         self.table.setVerticalScrollMode(QAbstractItemView.ScrollPerPixel)
         self.table.setContextMenuPolicy(Qt.CustomContextMenu)
@@ -748,7 +842,7 @@ class MainWindow(QMainWindow):
         hh.setStretchLastSection(True)
         hh.setMinimumSectionSize(40)
         for col, width in enumerate([40, 220, 138, 88, 118, 170]):
-            self.table.setColumnWidth(col, width)
+            self.table.setColumnWidth(col, int(width * self.k))
         self.table.doubleClicked.connect(lambda _: self.connect_selected())
         self.table.selectionModel().currentRowChanged.connect(lambda *_: self._refresh_details())
         tl.addWidget(self.table)
@@ -756,7 +850,6 @@ class MainWindow(QMainWindow):
         self.empty.setAlignment(Qt.AlignCenter)
         self.empty.hide()
         tl.addWidget(self.empty)
-        body.addWidget(table_card, 1)
 
         self.details = d = Details(self.c)
         d.connect_btn.clicked.connect(self.connect_selected)
@@ -766,8 +859,15 @@ class MainWindow(QMainWindow):
         d.edit_btn.clicked.connect(self.edit_server)
         d.dup_btn.clicked.connect(self.duplicate_server)
         d.delete_btn.clicked.connect(self.delete_servers)
-        body.addWidget(d)
-        lay.addLayout(body, 1)
+        self.inner = QSplitter(Qt.Horizontal)
+        self.inner.setHandleWidth(16)
+        self.inner.addWidget(table_card)
+        self.inner.addWidget(d)
+        self.inner.setCollapsible(0, False)
+        self.inner.setCollapsible(1, False)
+        self.inner.setStretchFactor(0, 1)
+        self.inner.setSizes([1000, min(int(400 * self.k), 460)])
+        lay.addWidget(self.inner, 1)
         return content
 
     def _build_shortcuts(self):
@@ -980,24 +1080,32 @@ class MainWindow(QMainWindow):
 
     def quit_app(self):
         self._quitting = True
+        self.save_ui_state()
+        self.pool.clear()  # drop checks that have not started yet
         QApplication.quit()
 
     def closeEvent(self, event):
-        if self._quitting or not self.inv.settings.close_to_background:
+        if self._replacing:  # swapped for a restyled window
             event.accept()
-            QApplication.quit()
+            return
+        if self._quitting or not self.inv.settings.keep_running_on_close:
+            event.accept()
+            self.quit_app()
             return
         event.ignore()
+        self.hide_to_background()
+
+    def hide_to_background(self):
         if not self.inv.settings.background_hint_shown:
             where = "the tray icon" if self.tray else "the app menu, or run  ssh-manager  in a terminal"
             QMessageBox.information(
                 self, "Still running",
                 f"{APP_NAME} keeps running in the background.\n\n"
                 f"To bring it back, use {where}.\n"
-                "To stop it, use Quit (Ctrl+Q) or run  ssh-manager quit.\n\n"
-                "You can change this in Settings.")
+                "To stop it, use Quit (Ctrl+Q) or run  ssh-manager quit.")
             self.inv.settings.background_hint_shown = True
             self._save()
+        self.save_ui_state()
         self.hide()
 
     # ---- actions -----------------------------------------------------
@@ -1069,19 +1177,68 @@ class MainWindow(QMainWindow):
             self.toast.show_message(f"Deleted {len(servers)} server(s)")
 
     def run_jobs(self, kind: str, servers: list[Server], quiet: bool = False):
+        """Start checks / hostname fetches; a batch reports its result when the last one finishes."""
         if not servers:
             return
+        batch = self._batches.setdefault(kind, {"pending": set(), "names": [], "quiet": True})
+        batch["quiet"] = batch["quiet"] and quiet
         for s in servers:
+            if s.name in batch["pending"]:
+                continue
+            batch["pending"].add(s.name)
+            if s.name not in batch["names"]:
+                batch["names"].append(s.name)
             self.model.set_status(s.name, None, "Checking…" if kind == "check" else "Fetching hostname…")
             self.pool.start(Job(kind, self.inv, s, self.job_signals))
         if not quiet:
             verb = "Checking" if kind == "check" else "Fetching hostname for"
-            self.toast.show_message(f"{verb} {len(servers)} server(s)…")
+            self.toast.show_message(f"{verb} {len(batch['pending'])} server(s)…", 60000)
+        self._update_progress()
         self._refresh_details()
+
+    def _update_progress(self):
+        batch = self._batches.get("check")
+        if batch:
+            done = len(batch["names"]) - len(batch["pending"])
+            self.check_btn.setText(f"Checking… {done}/{len(batch['names'])}")
+        else:
+            self.check_btn.setText("Check all")
+
+    def _finish_batch(self, kind: str, batch: dict):
+        if batch["quiet"]:
+            return
+        c = self.c
+        results = [(n, *self.model.status.get(n, (None, ""))) for n in batch["names"] if self.inv.get(n)]
+        up = [n for n, ok, _ in results if ok]
+        down = [(n, msg) for n, ok, msg in results if ok is False]
+        ok_html = f"<span style='color:{c['success']}'>●</span>"
+        bad_html = f"<span style='color:{c['danger']}'>●</span>"
+        if len(results) == 1:
+            name, ok, msg = results[0]
+            text = f"{ok_html if ok else bad_html}&nbsp; <b>{name}</b>: {msg}"
+        elif kind == "check":
+            text = (f"Check complete &nbsp;&nbsp; {ok_html} {len(up)} reachable &nbsp;&nbsp; "
+                    f"{bad_html} {len(down)} unreachable")
+            if any(self.inv.get(n).requires_vpn for n, _ in down):
+                text += "<br><span style='font-weight:400'>Some VPN servers are unreachable — is the VPN connected?</span>"
+        else:
+            text = f"Hostnames updated &nbsp;&nbsp; {ok_html} {len(up)} done &nbsp;&nbsp; {bad_html} {len(down)} failed"
+        self.toast.show_message(text, 5000)
+
+    def _batch_job_done(self, kind: str, name: str):
+        batch = self._batches.get(kind)
+        if not batch or name not in batch["pending"]:
+            return
+        batch["pending"].discard(name)
+        if not batch["pending"]:
+            del self._batches[kind]
+            self._finish_batch(kind, batch)
+        self._update_progress()
 
     def _job_done(self, kind: str, name: str, ok: bool, msg: str):
         s = self.inv.get(name)
-        if s is None:
+        if s is None:  # deleted while the job ran
+            self._batch_job_done(kind, name)
             return
         if kind == "hostname":
             if ok:
@@ -1092,6 +1249,7 @@ class MainWindow(QMainWindow):
                 self.model.set_status(name, False, f"Login failed: {msg}")
         else:
             self.model.set_status(name, ok, msg)
+        self._batch_job_done(kind, name)
         self._update_summary()
         cur = self.current_server()
         if cur and cur.name == name:
@@ -1103,10 +1261,11 @@ class MainWindow(QMainWindow):
             before = (self.inv.settings.theme, self.inv.settings.font_size)
             dlg.apply()
             if self._save():
-                self.reload()
-                changed = before != (self.inv.settings.theme, self.inv.settings.font_size)
-                self.toast.show_message("Theme and font size apply after restarting the app" if changed
-                                        else "Settings saved", 4000)
+                if before != (self.inv.settings.theme, self.inv.settings.font_size):
+                    self.rebuild_requested.emit()
+                else:
+                    self.reload()
+                    self.toast.show_message("Settings saved")
 
     def _merge(self, servers: list[Server]):
         added, skipped = [], []
@@ -1178,7 +1337,24 @@ def run(inv: Inventory, hidden: bool = False) -> int:
     server.listen(background.SOCKET_NAME)
 
     app.setQuitOnLastWindowClosed(False)
-    win = build_window(inv)
+    current: dict[str, MainWindow] = {}
+
+    def open_window(show: bool = True):
+        """Create the main window; on a theme/font change, swap the old one for a restyled copy."""
+        old = current.get("win")
+        if old is not None:
+            old.save_ui_state()  # the new window restores size, panels and columns from this
+        win = build_window(inv)
+        win.rebuild_requested.connect(lambda: QTimer.singleShot(0, open_window))
+        current["win"] = win
+        if old is not None:
+            old._replacing = True
+            old.close()
+            old.deleteLater()
+        if show:
+            win.show()
+            if old is not None:
+                win.toast.show_message("Appearance updated")
 
     def on_connection():
         sock = server.nextPendingConnection()
@@ -1188,14 +1364,13 @@ def run(inv: Inventory, hidden: bool = False) -> int:
         def handle():
             msg = bytes(sock.readAll()).decode(errors="ignore").strip()
             if msg == "show":
-                win.bring_to_front()
+                current["win"].bring_to_front()
             elif msg == "quit":
-                win.quit_app()
+                current["win"].quit_app()
 
         sock.readyRead.connect(handle)
         sock.disconnected.connect(sock.deleteLater)
 
     server.newConnection.connect(on_connection)
-    if not hidden:
-        win.show()
+    open_window(show=not hidden)
     return app.exec()

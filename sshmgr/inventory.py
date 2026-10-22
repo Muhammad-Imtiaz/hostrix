@@ -63,7 +63,7 @@ class Settings:
     terminal: str = "auto"
     theme: str = "system"              # system | light | dark
     font_size: int = 11                # points
-    close_to_background: bool = True   # closing the window keeps the app running
+    keep_running_on_close: bool = False  # closing the window hides it instead of quitting
     background_hint_shown: bool = False
 
 

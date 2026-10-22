@@ -10,14 +10,15 @@ so you don't have to remember IPs, hostnames, users, keys or jump hosts.
 - **Test** / **Check all**: TCP check of port 22 on the first hop (hints "VPN connected?" for VPN servers)
 - **Fetch hostname(s)**: logs in non-interactively and fills in each server's real hostname
 - Import from `~/.ssh/config` or JSON, export to JSON
-- Web-dashboard style UI: light / dark / system theme, adjustable font size, right-click menu, toasts
-- Runs in the background: closing the window keeps it running; run `ssh-manager` again to bring it back
+- Web-dashboard style UI: light / dark / system theme, adjustable font size (applies instantly), right-click menu, toasts
+- Resizable panels: drag the borders between the sidebar, server list and details; the layout is remembered
+- Can run in the background: **Run in background** hides the window; run `ssh-manager` again to bring it back
 
 ## Install (Ubuntu)
 
 ```bash
 packaging/build.sh                                   # builds dist/ssh-manager/ + .deb
-sudo apt install ./dist/ssh-manager_0.2.0_amd64.deb
+sudo apt install ./dist/ssh-manager_0.3.0_amd64.deb
 ssh-manager                                          # or launch "SSH Manager" from the app menu
 ```
 
@@ -27,8 +28,9 @@ with `ssh-manager` on the PATH, so nothing else is needed.
 ## Background mode
 
 - `ssh-manager` started from a terminal detaches right away and gives you the prompt back.
-- Closing the window keeps it running (turn off in Settings). Run `ssh-manager` again, or open it from the
-  app menu, to bring the same window back. Only one instance runs at a time.
+- The close button (✕) quits the app. To keep it running, click **Run in background** in the sidebar, or turn on
+  "Keep running in the background when the window is closed" in Settings. Run `ssh-manager` again, or open it
+  from the app menu, to bring the same window back. Only one instance runs at a time.
 - `ssh-manager --hidden` starts it without a window; `ssh-manager quit` stops it.
 - On desktops with a system tray, a tray icon shows/hides the window and has a quick-connect menu.
   On Linux desktops (not WSL), Settings can start it in the background when you log in.
@@ -97,8 +99,8 @@ Only `name` and `host` are required.
 | `default_key` | `""` | Key for servers without one (empty = ssh's own defaults) |
 | `terminal` | `"auto"` | Terminal to open sessions in (see [Terminal](#terminal)) |
 | `theme` | `"system"` | `system`, `light` or `dark` |
-| `font_size` | `11` | UI font size in points |
-| `close_to_background` | `true` | Closing the window keeps the app running |
+| `font_size` | `11` | UI font size in points; the layout scales with it |
+| `keep_running_on_close` | `false` | `true` = the close button hides the window instead of quitting |
 
 ### Use the servers outside the app
 

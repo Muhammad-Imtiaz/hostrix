@@ -6,7 +6,7 @@
     "terminal": "auto",
     "theme": "system",
     "font_size": 11,
-    "close_to_background": true,
+    "keep_running_on_close": false,
     "background_hint_shown": false
   },
   "servers": [
