@@ -18,12 +18,14 @@ so you don't have to remember IPs, hostnames, users, keys or jump hosts.
 
 ```bash
 packaging/build.sh                                   # builds dist/ssh-manager/ + .deb
-sudo apt install ./dist/ssh-manager_0.3.1_amd64.deb
+sudo apt install ./dist/ssh-manager_0.3.2_amd64.deb
 ssh-manager                                          # or launch "SSH Manager" from the app menu
 ```
 
 The `.deb` installs a self-contained app (Python and Qt bundled) to `/opt/ssh-manager`,
 with `ssh-manager` on the PATH, so nothing else is needed.
+
+When upgrading, click **Quit** in the running app first, so the new version starts fresh.
 
 ## Background mode
 
@@ -113,9 +115,29 @@ Include ~/.config/ssh-manager/ssh_config
 
 ## Terminal
 
-In Settings, `auto` uses Windows Terminal on WSL, Terminal.app on macOS, Windows Terminal or cmd on Windows,
-and otherwise the first Linux terminal it finds (gnome-terminal, konsole, xfce4-terminal, kitty, xterm...).
-You can also set a custom template, such as `gnome-terminal -- {args}` or `xterm -T {title} -e {args}`.
+**Connect** opens a new terminal running `ssh-manager connect <name>`. Pick the terminal in
+**Settings → Terminal**:
+
+- `auto` (recommended): Windows Terminal on WSL, Terminal.app on macOS, Windows Terminal or cmd on Windows,
+  and otherwise the first Linux terminal it finds (gnome-terminal, konsole, xfce4-terminal, kitty, xterm...).
+- A template. The list only shows terminals installed on this machine, and you can type your own:
+  `{args}` is replaced by the command as separate arguments, `{cmd}` by one quoted string, and `{title}` by the
+  server name. Examples: `gnome-terminal -- {args}`, `xterm -T {title} -e {args}`.
+
+If the terminal fails to start, the app shows **Terminal didn't open** with the terminal's own error output,
+and a **Use auto and retry** button that switches back to `auto` and reconnects.
+
+## Troubleshooting
+
+- **Connect does nothing / "Terminal didn't open" on WSL:** set the terminal to `auto`. On WSL,
+  `x-terminal-emulator` often points to a Linux terminal that can't start under WSLg (for example, zutty
+  aborts with `No suitable files for '9x18' found!`).
+- **Changes don't show up after upgrading:** an app started before the upgrade keeps running the old version.
+  Click **Quit** in the sidebar (closing the window may only hide it), then start `ssh-manager` again.
+- **"VPN connected?" on every server:** the first hop isn't reachable on port 22. Connect the VPN, then
+  click **Check all**.
+- **Logs:** `~/.config/ssh-manager/ssh-manager.log`, or run `ssh-manager --foreground` to see output in
+  the terminal.
 
 ## CLI
 

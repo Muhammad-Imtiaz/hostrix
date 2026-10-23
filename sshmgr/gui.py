@@ -19,7 +19,8 @@ from PySide6.QtWidgets import (QAbstractItemView, QApplication, QCheckBox, QComb
                                QStyleOptionViewItem, QSystemTrayIcon, QTableView, QVBoxLayout, QWidget)
 
 from . import APP_NAME, __version__, background, theme
-from .connect import display_command, fetch_hostname, key_exists, open_in_terminal, tcp_reachable
+from .connect import (available_templates, display_command, fetch_hostname, key_exists, launch_failure,
+                      open_in_terminal, tcp_reachable)
 from .inventory import Inventory, InventoryError, Server, config_dir, parse_ssh_config
 
 ICON_PATH = Path(__file__).with_name("assets") / "ssh-manager.svg"
@@ -452,9 +453,7 @@ class SettingsDialog(QDialog):
         self.key = QLineEdit(st.default_key)
         self.terminal = QComboBox()
         self.terminal.setEditable(True)
-        self.terminal.addItems(["auto", "gnome-terminal -- {args}", "konsole -e {args}",
-                                "xfce4-terminal -x {args}", "xterm -T {title} -e {args}",
-                                "x-terminal-emulator -e {args}"])
+        self.terminal.addItems(["auto"] + available_templates())  # only terminals installed here
         self.terminal.setCurrentText(st.terminal or "auto")
 
         self.background = QCheckBox("Keep running in the background when the window is closed")
@@ -1141,12 +1140,34 @@ class MainWindow(QMainWindow):
     # ---- actions -----------------------------------------------------
     def _open_terminal(self, s: Server) -> bool:
         try:
-            open_in_terminal(self.inv, s)
+            proc, output, argv = open_in_terminal(self.inv, s)
         except Exception as e:
-            QMessageBox.critical(self, "Could not open terminal", str(e))
+            self._terminal_failed(s, str(e))
             return False
         self.toast.show_message(f"Opening session to {s.name}…")
+
+        def check():
+            error = launch_failure(proc, output)
+            output.close()
+            if error:
+                self._terminal_failed(s, f"{' '.join(argv[:3])}… failed with {error}")
+        QTimer.singleShot(2000, check)  # a terminal that cannot start usually dies within a second
         return True
+
+    def _terminal_failed(self, s: Server, error: str):
+        template = self.inv.settings.terminal or "auto"
+        box = QMessageBox(QMessageBox.Warning, "Terminal didn't open",
+                          f"Could not open a terminal for {s.name}.", parent=self)
+        box.setInformativeText(f"Terminal setting: {template}\n\nChange it in Settings → Terminal. "
+                               "“auto” uses Windows Terminal on WSL.")
+        box.setDetailedText(error)
+        retry = box.addButton("Use auto and retry", QMessageBox.AcceptRole) if template != "auto" else None
+        box.addButton(QMessageBox.Close)
+        box.exec()
+        if retry is not None and box.clickedButton() is retry:
+            self.inv.settings.terminal = "auto"
+            if self._save():
+                self._open_terminal(s)
 
     def connect_selected(self):
         servers = self.selected_servers()

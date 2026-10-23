@@ -8,6 +8,7 @@ import shutil
 import socket
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 from .inventory import Inventory, Server
@@ -133,6 +134,18 @@ LINUX_TERMINALS = [
 ]
 
 
+# templates offered in Settings; only the ones installed on this machine are shown
+TERMINAL_TEMPLATES = [
+    "gnome-terminal -- {args}", "konsole -e {args}", "xfce4-terminal -x {args}", "tilix -e {args}",
+    "kitty {args}", "alacritty -e {args}", "wezterm start -- {args}", "xterm -T {title} -e {args}",
+    "x-terminal-emulator -e {args}",
+]
+
+
+def available_templates() -> list[str]:
+    return [t for t in TERMINAL_TEMPLATES if shutil.which(t.split()[0])]
+
+
 def terminal_argv(cmd: list[str], title: str, template: str = "auto") -> list[str]:
     """Wrap *cmd* so it runs in a new terminal window."""
     if template and template != "auto":
@@ -161,12 +174,27 @@ def terminal_argv(cmd: list[str], title: str, template: str = "auto") -> list[st
     raise RuntimeError("No terminal emulator found. Set one in Settings (e.g. 'xterm -e {args}').")
 
 
-def open_in_terminal(inv: Inventory, s: Server) -> list[str]:
-    """Open a new terminal window running `ssh-manager connect <name>`."""
+def open_in_terminal(inv: Inventory, s: Server) -> tuple[subprocess.Popen, "tempfile._TemporaryFileWrapper", list[str]]:
+    """Open a new terminal window running `ssh-manager connect <name>`.
+
+    Returns the launcher process and a file collecting its output, so the caller can
+    report a terminal that crashes on startup instead of failing silently.
+    """
     argv = terminal_argv(self_command() + ["connect", s.name], s.name, inv.settings.terminal)
-    subprocess.Popen(argv, start_new_session=True, stdin=subprocess.DEVNULL,
-                     stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, env=child_env())
-    return argv
+    output = tempfile.TemporaryFile()
+    proc = subprocess.Popen(argv, start_new_session=True, stdin=subprocess.DEVNULL,
+                            stdout=output, stderr=output, env=child_env())
+    return proc, output, argv
+
+
+def launch_failure(proc: subprocess.Popen, output) -> str | None:
+    """Error text if the terminal launcher already exited with an error, else None."""
+    rc = proc.poll()
+    if rc is None or rc == 0:
+        return None
+    output.seek(0)
+    tail = output.read()[-1500:].decode(errors="replace").strip()
+    return f"exit code {rc}" + (f"\n\n{tail}" if tail else "")
 
 
 def run_interactive(inv: Inventory, name: str) -> int:
