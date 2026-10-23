@@ -39,6 +39,8 @@ def _base_args(inv: Inventory, s: Server) -> list[str]:
 
 def ssh_args(inv: Inventory, s: Server, batch: bool = False, remote_cmd: str | None = None) -> list[str]:
     """Return the argv that connects to *s* (through its jump host, if any)."""
+    if sys.platform == "win32":
+        return _windows_ssh_args(inv, s, batch, remote_cmd)
     args = _base_args(inv, s) + COMMON_OPTS
     if batch:
         args += ["-o", "BatchMode=yes"]
@@ -52,6 +54,24 @@ def ssh_args(inv: Inventory, s: Server, batch: bool = False, remote_cmd: str | N
         proxy += ["-W", "%h:%p", _target(inv, jump)]
         args += ["-o", "ProxyCommand=" + shlex.join(proxy)]
     args.append(_target(inv, s))
+    if remote_cmd:
+        args.append(remote_cmd)
+    return args
+
+
+def _windows_ssh_args(inv: Inventory, s: Server, batch: bool, remote_cmd: str | None) -> list[str]:
+    """Windows OpenSSH: use the generated ssh_config (ProxyJump passes -F on to the jump hop).
+
+    A POSIX-quoted ProxyCommand does not survive Windows command-line parsing, so the
+    jump host, keys and options come from the config file instead.
+    """
+    if s.jump and inv.get(s.jump) is None:
+        raise ValueError(f"Jump host '{s.jump}' not found")
+    inv.write_ssh_config()
+    args = ["ssh", "-F", str(inv.ssh_config_path)] + COMMON_OPTS
+    if batch:
+        args += ["-o", "BatchMode=yes"]
+    args.append(s.name)
     if remote_cmd:
         args.append(remote_cmd)
     return args
@@ -82,10 +102,12 @@ def tcp_reachable(inv: Inventory, s: Server, timeout: float = 3.0) -> tuple[bool
 
 def fetch_hostname(inv: Inventory, s: Server, timeout: int = 20) -> tuple[bool, str]:
     """Log in non-interactively and return the server's `hostname`."""
+    # no console window flashing up for each background ssh on Windows
+    flags = subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
     try:
         out = subprocess.run(
             ssh_args(inv, s, batch=True, remote_cmd="hostname"),
-            capture_output=True, text=True, timeout=timeout, stdin=subprocess.DEVNULL,
+            capture_output=True, text=True, timeout=timeout, stdin=subprocess.DEVNULL, creationflags=flags,
         )
     except subprocess.TimeoutExpired:
         return False, "timed out"
@@ -157,7 +179,7 @@ def terminal_argv(cmd: list[str], title: str, template: str = "auto") -> list[st
     if sys.platform == "win32":
         if shutil.which("wt"):
             return ["wt", "-w", "0", "new-tab", "--title", title] + cmd
-        return ["cmd", "/c", "start", title, "cmd", "/k", subprocess.list2cmdline(cmd)]
+        return ["cmd", "/k"] + cmd  # opened in a new console window, stays open to show errors
 
     if sys.platform == "darwin":
         script = f'tell application "Terminal" to do script "{shlex.join(cmd)}"'
@@ -180,10 +202,16 @@ def open_in_terminal(inv: Inventory, s: Server) -> tuple[subprocess.Popen, "temp
     Returns the launcher process and a file collecting its output, so the caller can
     report a terminal that crashes on startup instead of failing silently.
     """
-    argv = terminal_argv(self_command() + ["connect", s.name], s.name, inv.settings.terminal)
+    if sys.platform == "win32":
+        # the Windows build is a GUI app without a console, so the terminal runs ssh itself
+        cmd = ssh_args(inv, s)
+        kwargs = dict(creationflags=subprocess.CREATE_NEW_CONSOLE)
+    else:
+        cmd = self_command() + ["connect", s.name]
+        kwargs = dict(start_new_session=True)
+    argv = terminal_argv(cmd, s.name, inv.settings.terminal)
     output = tempfile.TemporaryFile()
-    proc = subprocess.Popen(argv, start_new_session=True, stdin=subprocess.DEVNULL,
-                            stdout=output, stderr=output, env=child_env())
+    proc = subprocess.Popen(argv, stdin=subprocess.DEVNULL, stdout=output, stderr=output, env=child_env(), **kwargs)
     return proc, output, argv
 
 

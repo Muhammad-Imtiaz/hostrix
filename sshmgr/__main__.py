@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -78,6 +79,7 @@ def main(argv: list[str] | None = None) -> int:
     sub.add_parser("gui")
     sub.add_parser("show")
     sub.add_parser("quit")
+    sub.add_parser("selftest", help="build the main window off-screen and exit (used by CI)")
     c = sub.add_parser("connect")
     c.add_argument("name")
     sub.add_parser("list")
@@ -94,6 +96,14 @@ def main(argv: list[str] | None = None) -> int:
 
     inv = Inventory(args.inventory)
 
+    if args.cmd == "selftest":
+        os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+        from .gui import build_window, make_app
+        app = make_app()
+        win = build_window(inv)
+        win.reload()
+        print(f"selftest ok: {__version__}, {len(inv.servers)} servers, Qt platform {app.platformName()}")
+        return 0
     if args.cmd in ("show", "quit"):
         from .background import send_command
         if send_command(args.cmd):

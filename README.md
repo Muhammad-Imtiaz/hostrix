@@ -1,7 +1,11 @@
 # SSH Manager
 
 A desktop app for keeping an inventory of SSH servers and opening a session with one click,
-so you don't have to remember IPs, hostnames, users, keys or jump hosts.
+so you don't have to remember IPs, hostnames, users, keys or jump hosts. Runs on Ubuntu, macOS and Windows.
+
+**[⬇ Download the latest release](https://github.com/imtiaz9832/ssh-manager/releases/latest)**
+
+![SSH Manager](docs/screenshots/main-light.png)
 
 - Table of servers: name, hostname, IP, user, group, access (Direct / VPN / via jump host), description
 - Details panel: key path (warns if the file is missing), jump host, full `ssh` command
@@ -14,16 +18,23 @@ so you don't have to remember IPs, hostnames, users, keys or jump hosts.
 - Resizable panels: drag the borders between the sidebar, server list and details; the layout is remembered
 - Can run in the background: **Run in background** hides the window; run `ssh-manager` again to bring it back
 
-## Install (Ubuntu)
+## Install
 
-```bash
-packaging/build.sh                                   # builds dist/ssh-manager/ + .deb
-sudo apt install ./dist/ssh-manager_0.3.2_amd64.deb
-ssh-manager                                          # or launch "SSH Manager" from the app menu
-```
+Download the package for your system from the
+[latest release](https://github.com/imtiaz9832/ssh-manager/releases/latest). Each one is self-contained
+(Python and Qt included); you only need an OpenSSH client, which ships with all three systems.
 
-The `.deb` installs a self-contained app (Python and Qt bundled) to `/opt/ssh-manager`,
-with `ssh-manager` on the PATH, so nothing else is needed.
+| System | Download | Install |
+|---|---|---|
+| Ubuntu / Debian (x86_64) | `ssh-manager_<version>_amd64.deb` | `sudo apt install ./ssh-manager_<version>_amd64.deb` |
+| Other Linux (x86_64) | `ssh-manager-<version>-linux-x86_64.tar.gz` | Extract and run `ssh-manager/ssh-manager` |
+| macOS 13+ (Apple Silicon) | `ssh-manager-<version>-macos-arm64.dmg` | Drag **SSH Manager** to Applications |
+| Windows 10 / 11 (x64) | `ssh-manager-<version>-windows-x64-setup.exe` | Run the installer (no admin needed) |
+| Windows, portable | `ssh-manager-<version>-windows-x64-portable.zip` | Extract and run `ssh-manager.exe` |
+
+The apps aren't code-signed yet. On **macOS**, if it says the app is damaged or can't be opened, run
+`xattr -dr com.apple.quarantine "/Applications/SSH Manager.app"` once. On **Windows**, if SmartScreen
+appears, click **More info → Run anyway**.
 
 When upgrading, click **Quit** in the running app first, so the new version starts fresh.
 
@@ -151,6 +162,8 @@ ssh-manager import FILE.json
 ssh-manager import-ssh-config [~/.ssh/config]
 ```
 
+On Windows the app is GUI-only, so these commands are for Linux and macOS.
+
 ## Development
 
 ```bash
@@ -158,5 +171,24 @@ python3 -m venv .venv && .venv/bin/pip install -e .
 .venv/bin/python -m sshmgr --foreground
 ```
 
-macOS / Windows: run `packaging/build.sh` on that OS (on Windows use Git Bash, or run the
-`pyinstaller` line by hand with `--add-data "sshmgr/assets;sshmgr/assets"`).
+### Building packages
+
+`packaging/build.py` builds the packages for the OS it runs on into `dist/release/`: a `.deb` and `.tar.gz`
+on Linux, a `.dmg` on macOS, and a setup `.exe` (needs [Inno Setup](https://jrsoftware.org/isinfo.php)) plus a
+portable `.zip` on Windows.
+
+```bash
+pip install -e . pyinstaller
+python packaging/build.py          # or packaging/build.sh on Linux/macOS (uses .venv)
+```
+
+### Releasing
+
+Pushing a version tag runs [`.github/workflows/release.yml`](.github/workflows/release.yml). It builds on
+Ubuntu, macOS and Windows, smoke-tests each build, and publishes a GitHub release with every package,
+`SHA256SUMS.txt`, and the notes from `docs/releases/<tag>.md`:
+
+```bash
+# bump __version__ in sshmgr/__init__.py and pyproject.toml, add docs/releases/vX.Y.Z.md, commit, then:
+git tag -a vX.Y.Z -m "vX.Y.Z" && git push origin vX.Y.Z
+```
