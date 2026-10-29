@@ -128,7 +128,8 @@ def main(argv: list[str] | None = None) -> int:
         return run_interactive(inv, args.name)
     if args.cmd == "list":
         for s in sorted(inv.servers, key=lambda s: (s.group, s.name)):
-            print(f"{s.name:28} {s.host:17} {inv.effective_user(s):10} {s.group:14} {s.description}")
+            print(f"{s.name:28} {s.host:17} {s.public_ip or '-':17} {inv.effective_user(s):10} {s.group:14} "
+                  f"{s.description}")
         return 0
     if args.cmd == "command":
         s = inv.get(args.name)

@@ -7,7 +7,8 @@ so you don't have to remember IPs, hostnames, users, keys or jump hosts. Runs on
 
 ![SSH Manager](docs/screenshots/main-light.png)
 
-- Table of servers: name, hostname, IP, user, group, access (Direct / VPN / via jump host), description
+- Table of servers: name, hostname, IP, public IP, user, group, access (Direct / VPN / via jump host), description
+- Search matches any of them, including the public IP
 - Details panel: key path (warns if the file is missing), jump host, full `ssh` command
 - Add, edit, duplicate and delete servers; group filter and instant search
 - **Connect** (double-click / Enter) opens a new terminal tab running ssh
@@ -94,6 +95,7 @@ Only `name` and `host` are required.
 |---|---|---|
 | `name` | `vpc-app-01` | Unique alias: letters, digits, `.`, `_`, `-`. Also used as `ssh <name>` |
 | `host` | `10.0.1.11` | IP address or DNS name to connect to |
+| `public_ip` | `198.51.100.21` | Public address, shown in its own column and searchable. Informational only: ssh still connects to `host` |
 | `hostname` | `app-01` | The machine's own hostname, shown in the list. **Fetch hostname** fills it in |
 | `user` | `dbadmin` | Login user. Empty = `default_user` |
 | `port` | `2222` | SSH port. Default `22` |

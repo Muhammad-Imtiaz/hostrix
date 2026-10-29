@@ -13,6 +13,7 @@
     {
       "name": "bastion",
       "host": "203.0.113.10",
+      "public_ip": "203.0.113.10",
       "hostname": "bastion-01",
       "group": "Jump hosts",
       "description": "Public jump host for the private VPC servers"
@@ -20,6 +21,7 @@
     {
       "name": "vpc-app-01",
       "host": "10.0.1.11",
+      "public_ip": "198.51.100.21",
       "hostname": "app-01",
       "jump": "bastion",
       "group": "Production",
@@ -28,6 +30,7 @@
     {
       "name": "vpc-db-01",
       "host": "10.0.1.21",
+      "public_ip": "198.51.100.22",
       "hostname": "db-01",
       "user": "dbadmin",
       "key_path": "~/.ssh/db_key",
@@ -46,10 +49,14 @@
     {
       "name": "staging-web",
       "host": "staging.example.com",
+      "public_ip": "203.0.113.45",
       "port": 2222,
       "group": "Staging",
       "description": "Custom SSH port, keeps the connection alive",
-      "extra_options": ["ServerAliveInterval=30", "ServerAliveCountMax=3"]
+      "extra_options": [
+        "ServerAliveInterval=30",
+        "ServerAliveCountMax=3"
+      ]
     }
   ]
 }

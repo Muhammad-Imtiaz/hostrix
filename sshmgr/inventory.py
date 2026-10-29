@@ -36,6 +36,7 @@ def config_dir() -> Path:
 class Server:
     name: str                      # unique alias, also used as the ssh_config Host
     host: str                      # IP address or DNS name ssh connects to
+    public_ip: str = ""            # public address, shown in the list and searchable (informational)
     user: str = ""
     port: int = 22
     hostname: str = ""             # the machine's own hostname (informational)

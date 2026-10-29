@@ -93,7 +93,7 @@ class Job(QRunnable):
 
 # ---- table model ------------------------------------------------------
 class ServerModel(QAbstractTableModel):
-    COLUMNS = ["", "SERVER", "IP / HOST", "USER", "GROUP", "ACCESS", "DESCRIPTION"]
+    COLUMNS = ["", "SERVER", "IP / HOST", "PUBLIC IP", "USER", "GROUP", "ACCESS", "DESCRIPTION"]
 
     def __init__(self, inv: Inventory):
         super().__init__()
@@ -128,15 +128,15 @@ class ServerModel(QAbstractTableModel):
         if role == Qt.DisplayRole:
             if col == 0:  # sort order: reachable, unknown, unreachable
                 return {True: 0, None: 1, False: 2}[self.status.get(s.name, (None, ""))[0]]
-            return [None, s.name, s.host, self.inv.effective_user(s), s.group,
+            return [None, s.name, s.host, s.public_ip, self.inv.effective_user(s), s.group,
                     " ".join(t for t, _ in access_badges(s)), s.description][col]
         if role == Qt.ToolTipRole:
             if col == 0:
                 return self.status.get(s.name, (None, "Not checked yet"))[1]
-            if col == 6:
+            if col == 7:
                 return s.description
         if role == SEARCH_ROLE:
-            return " ".join([s.name, s.hostname, s.host, self.inv.effective_user(s), s.group,
+            return " ".join([s.name, s.hostname, s.host, s.public_ip, self.inv.effective_user(s), s.group,
                              s.description, s.jump, "vpn" if s.requires_vpn else ""]).lower()
         return None
 
@@ -175,7 +175,7 @@ class FilterProxy(QSortFilterProxyModel):
 class CellDelegate(QStyledItemDelegate):
     """Paints status dots, two-line server names, monospace IPs and coloured pills."""
 
-    CUSTOM = (0, 1, 2, 4, 5)
+    CUSTOM = (0, 1, 2, 3, 5, 6)
 
     def __init__(self, parent, colors: dict, status: dict):
         super().__init__(parent)
@@ -235,13 +235,14 @@ class CellDelegate(QStyledItemDelegate):
             p.setPen(QColor(self.c["muted"] if s.hostname else self.c["faint"]))
             p.drawText(QRect(r.left(), top + fm.height(), r.width(), fms.height()), Qt.AlignLeft | Qt.AlignVCenter,
                        fms.elidedText(s.hostname or "hostname unknown", Qt.ElideRight, r.width()))
-        elif col == 2:
+        elif col in (2, 3):
+            address = s.host if col == 2 else s.public_ip
             p.setFont(theme.mono_font(derived_font(-1).pointSize()))
-            p.setPen(QColor(self.c["text"]))
-            p.drawText(r, Qt.AlignLeft | Qt.AlignVCenter, s.host)
+            p.setPen(QColor(self.c["text"] if address else self.c["faint"]))
+            p.drawText(r, Qt.AlignLeft | Qt.AlignVCenter, address or "—")
         else:
             small = derived_font(-2, QFont.DemiBold)
-            pills = ([(s.group, "pill_group")] if s.group else []) if col == 4 else access_badges(s)
+            pills = ([(s.group, "pill_group")] if s.group else []) if col == 5 else access_badges(s)
             x = r.left()
             for text, kind in pills:
                 x += self._pill(p, x, cy, text, kind, small)
@@ -354,6 +355,8 @@ class ServerDialog(QDialog):
         self.name.setPlaceholderText("unique alias, e.g. bd-prod-db-01")
         self.host = QLineEdit(s.host)
         self.host.setPlaceholderText("IP address or DNS name")
+        self.public_ip = QLineEdit(s.public_ip)
+        self.public_ip.setPlaceholderText("optional, shown in the list and searchable")
         self.hostname = QLineEdit(s.hostname)
         self.hostname.setPlaceholderText("machine hostname (optional, can be fetched)")
         self.user = QLineEdit(s.user)
@@ -391,7 +394,7 @@ class ServerDialog(QDialog):
 
         layout, body = scroll_body(self)
         layout.addWidget(label(title, "PageTitle"))
-        layout.addWidget(form_section("Connection", [("Name *", self.name), ("Host / IP *", self.host),
+        layout.addWidget(form_section("Connection", [("Name *", self.name), ("Host / IP *", self.host), ("Public IP", self.public_ip),
                                                      ("User", self.user), ("Port", self.port),
                                                      ("Key path", key_row)]))
         layout.addWidget(form_section("Access", [("Jump host", self.jump), ("", self.vpn),
@@ -413,6 +416,7 @@ class ServerDialog(QDialog):
         s = Server(
             name=self.name.text().strip(),
             host=self.host.text().strip(),
+            public_ip=self.public_ip.text().strip(),
             hostname=self.hostname.text().strip(),
             user=self.user.text().strip(),
             port=int(self.port.text() or 22),
@@ -496,7 +500,8 @@ class SettingsDialog(QDialog):
 
 # ---- details panel ---------------------------------------------------
 class Details(Card):
-    FIELDS = ["IP / Host", "Port", "User", "Jump host", "Key path", "Description"]
+    FIELDS = ["IP / Host", "Public IP", "User", "Port", "Jump host", "Key path", "Description"]
+    WIDE = ("Key path", "Description")  # full-width rows below the two-column grid
 
     def __init__(self, colors: dict):
         super().__init__()
@@ -521,10 +526,11 @@ class Details(Card):
             cell.setSpacing(3)
             cell.addWidget(label(key.upper(), "FieldLabel"))
             cell.addWidget(value)
-            if i < 4:
+            short = len(self.FIELDS) - len(self.WIDE)
+            if key not in self.WIDE:
                 grid.addLayout(cell, i // 2, i % 2)
-            else:  # full-width rows
-                grid.addLayout(cell, i - 2, 0, 1, 2)
+            else:
+                grid.addLayout(cell, (short + 1) // 2 + i - short, 0, 1, 2)
 
         self.command = QPlainTextEdit()
         self.command.setObjectName("Code")
@@ -614,7 +620,7 @@ class Details(Card):
             key_text += f"<br><span style='color:{c['danger']}'>file not found</span>"
         user = inv.effective_user(s)
         user_text = (user or "local user") + (default if user and not s.user else "")
-        values = {"IP / Host": s.host, "Port": str(s.port), "User": user_text, "Jump host": s.jump or "—",
+        values = {"IP / Host": s.host, "Public IP": s.public_ip or "—", "Port": str(s.port), "User": user_text, "Jump host": s.jump or "—",
                   "Key path": key_text, "Description": s.description or "—"}
         for k, v in values.items():
             self.values[k].setText(v)
@@ -636,6 +642,8 @@ class MainWindow(QMainWindow):
         self.ui = QSettings(str(config_dir() / "ui.ini"), QSettings.IniFormat)
         self._quitting = False
         self._replacing = False
+        self._columns_from_user = False  # True once the user resizes a column: stop auto-fitting
+        self._fitting = False
         self._batches: dict[str, dict] = {}
         self.setWindowTitle(APP_NAME)
         screen = QApplication.primaryScreen().availableGeometry()
@@ -686,7 +694,8 @@ class MainWindow(QMainWindow):
 
     # ---- remembered layout -------------------------------------------
     def _header_key(self) -> str:
-        return f"table/header_{self.inv.settings.font_size}"  # column widths depend on the font
+        # column widths depend on the font and on which columns exist
+        return f"table/header_{self.inv.settings.font_size}_{len(ServerModel.COLUMNS)}"
 
     def _restore_ui_state(self):
         geometry = self.ui.value("window/geometry")
@@ -699,12 +708,16 @@ class MainWindow(QMainWindow):
         header = self.ui.value(self._header_key())
         if header:
             self.table.horizontalHeader().restoreState(header)
+            self._columns_from_user = True
 
     def save_ui_state(self):
         self.ui.setValue("window/geometry", self.saveGeometry())
         self.ui.setValue("layout/outer", self.outer.saveState())
         self.ui.setValue("layout/inner", self.inner.saveState())
-        self.ui.setValue(self._header_key(), self.table.horizontalHeader().saveState())
+        if self._columns_from_user:
+            self.ui.setValue(self._header_key(), self.table.horizontalHeader().saveState())
+        else:
+            self.ui.remove(self._header_key())  # keep fitting columns to the data
         self.ui.sync()
 
     def eventFilter(self, obj, event):
@@ -870,8 +883,7 @@ class MainWindow(QMainWindow):
         hh.setSectionResizeMode(QHeaderView.Interactive)
         hh.setStretchLastSection(True)
         hh.setMinimumSectionSize(40)
-        for col, width in enumerate([40, 220, 138, 88, 118, 170]):
-            self.table.setColumnWidth(col, int(width * self.k))
+        hh.sectionResized.connect(self._column_resized)
         self.table.doubleClicked.connect(lambda _: self.connect_selected())
         self.table.selectionModel().currentRowChanged.connect(lambda *_: self._refresh_details())
         tl.addWidget(self.table)
@@ -1000,7 +1012,46 @@ class MainWindow(QMainWindow):
         if select:
             self.select_name(select)
         self._refresh_details()
+        if not self._columns_from_user:
+            self._fit_columns()
         self._rebuild_tray_menu()
+
+    def _fit_columns(self):
+        """Size each column to its widest entry plus the same gap, until the user resizes one."""
+        servers = self.inv.servers
+        if not servers:
+            return
+        head = QFontMetrics(derived_font(-1, QFont.Bold))
+        bold, small = QFontMetrics(derived_font(0, QFont.DemiBold)), QFontMetrics(derived_font(-1))
+        mono = QFontMetrics(theme.mono_font(derived_font(-1).pointSize()))
+        text = QFontMetrics(derived_font(0))
+        pill = QFontMetrics(derived_font(-2, QFont.DemiBold))
+
+        def pills(items):
+            return sum(pill.horizontalAdvance(t) + 24 for t, _ in items)  # pill padding + spacing
+
+        # sized by the names; a much longer hostname underneath is elided (full one is in the details panel)
+        names = max(bold.horizontalAdvance(s.name) for s in servers)
+        hostnames = max(small.horizontalAdvance(s.hostname or "hostname unknown") for s in servers)
+        content = {
+            1: max(names, min(hostnames, names + int(40 * self.k))),
+            2: max(mono.horizontalAdvance(s.host) for s in servers),
+            3: max(mono.horizontalAdvance(s.public_ip or "—") for s in servers),
+            4: max(text.horizontalAdvance(self.inv.effective_user(s)) for s in servers),
+            5: max(pills([(s.group, "")]) if s.group else 0 for s in servers),
+            6: max(pills(access_badges(s)) for s in servers),
+        }
+        padding = 20 + int(22 * self.k)  # cell padding + the gap between columns
+        self._fitting = True
+        self.table.setColumnWidth(0, int(40 * self.k))
+        for col, width in content.items():
+            header = head.horizontalAdvance(ServerModel.COLUMNS[col]) + 16  # room for the sort arrow
+            self.table.setColumnWidth(col, min(max(width, header) + padding, int(320 * self.k)))
+        self._fitting = False
+
+    def _column_resized(self, *_):
+        if not self._fitting:
+            self._columns_from_user = True
 
     def select_name(self, name: str):
         for row, s in enumerate(self.inv.servers):
