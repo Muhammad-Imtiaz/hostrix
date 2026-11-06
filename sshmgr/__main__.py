@@ -20,7 +20,7 @@ import os
 import sys
 from pathlib import Path
 
-from . import __version__
+from . import AUTHOR, __version__
 from .inventory import Inventory, InventoryError, Server, parse_ssh_config
 
 
@@ -71,7 +71,7 @@ def _fetch_hostnames(inv: Inventory, names: list[str], refresh: bool) -> int:
 
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(prog="ssh-manager", description="SSH server inventory and launcher")
-    p.add_argument("--version", action="version", version=__version__)
+    p.add_argument("--version", action="version", version=f"ssh-manager {__version__} by {AUTHOR}")
     p.add_argument("--inventory", type=Path, help="path to inventory.json")
     p.add_argument("--hidden", action="store_true", help="start in the background without showing the window")
     p.add_argument("--foreground", action="store_true", help="do not detach from the terminal")

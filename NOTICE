@@ -1,0 +1,13 @@
+SSH Manager
+Copyright 2026 Muhammad Imtiaz
+
+Created and maintained by Muhammad Imtiaz (https://github.com/imtiaz9832).
+Project home: https://github.com/imtiaz9832/ssh-manager
+
+This product is licensed under the Apache License, Version 2.0 (see LICENSE).
+If you redistribute it or build on it, keep this NOTICE file, as section 4(d)
+of the license requires.
+
+Third-party components bundled in the release packages:
+  - Qt for Python (PySide6), licensed under the LGPL v3 (https://www.qt.io/licensing)
+  - Python, licensed under the PSF License Agreement (https://docs.python.org/3/license.html)

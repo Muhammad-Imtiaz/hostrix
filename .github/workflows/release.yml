@@ -106,6 +106,18 @@ jobs:
           pattern: packages-*
           merge-multiple: true
 
+      - name: Version-free copies for "latest" download links
+        # README links like releases/latest/download/ssh-manager-macos-arm64.dmg always get the newest build
+        run: |
+          cd release
+          ver="${GITHUB_REF_NAME#v}"
+          for f in *; do
+            stable="${f/_${ver}_/-linux-}"     # ssh-manager_X_amd64.deb -> ssh-manager-linux-amd64.deb
+            stable="${stable/-${ver}-/-}"      # ssh-manager-X-macos-arm64.dmg -> ssh-manager-macos-arm64.dmg
+            if [ "$stable" != "$f" ]; then cp "$f" "$stable"; fi
+          done
+          ls -la
+
       - name: Checksums
         run: |
           cd release

@@ -1,13 +1,36 @@
 [build-system]
-requires = ["setuptools>=68"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "ssh-manager"
-version = "0.4.1"
-description = "GUI inventory and launcher for SSH servers"
+version = "0.5.0"
+description = "Keep every SSH server in one place and connect with one click"
+readme = "README.md"
+license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE"]
+authors = [{ name = "Muhammad Imtiaz" }]
 requires-python = ">=3.10"
 dependencies = ["PySide6-Essentials>=6.5"]
+keywords = ["ssh", "ssh-client", "devops", "sysadmin", "jump-host", "bastion", "server-inventory", "desktop"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: X11 Applications :: Qt",
+    "Intended Audience :: System Administrators",
+    "Intended Audience :: Developers",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: MacOS",
+    "Operating System :: Microsoft :: Windows",
+    "Programming Language :: Python :: 3",
+    "Topic :: System :: Networking",
+    "Topic :: System :: Systems Administration",
+]
+
+[project.urls]
+Homepage = "https://github.com/imtiaz9832/ssh-manager"
+Download = "https://github.com/imtiaz9832/ssh-manager/releases/latest"
+Issues = "https://github.com/imtiaz9832/ssh-manager/issues"
+Changelog = "https://github.com/imtiaz9832/ssh-manager/blob/main/CHANGELOG.md"
 
 [project.scripts]
 ssh-manager = "sshmgr.__main__:main"

@@ -18,7 +18,7 @@ from PySide6.QtWidgets import (QAbstractItemView, QApplication, QCheckBox, QComb
                                QPushButton, QScrollArea, QSizePolicy, QSplitter, QStyle, QStyledItemDelegate,
                                QStyleOptionViewItem, QSystemTrayIcon, QTableView, QVBoxLayout, QWidget)
 
-from . import APP_NAME, __version__, background, theme
+from . import APP_NAME, AUTHOR, AUTHOR_URL, LICENSE, REPO_URL, __version__, background, theme
 from .connect import (available_templates, display_command, fetch_hostname, key_exists, launch_failure,
                       open_in_terminal, tcp_reachable)
 from .inventory import Inventory, InventoryError, Server, config_dir, parse_ssh_config
@@ -437,6 +437,50 @@ class ServerDialog(QDialog):
         self.accept()
 
 
+class AboutDialog(QDialog):
+    """Version, author credit, license and project links."""
+
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.setWindowTitle(f"About {APP_NAME}")
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(36, 30, 36, 26)
+        layout.setSpacing(10)
+        logo = QLabel()
+        logo.setPixmap(QIcon(str(ICON_PATH)).pixmap(72, 72))
+        logo.setAlignment(Qt.AlignCenter)
+        layout.addWidget(logo)
+        for text, name in ((APP_NAME, "PageTitle"), (f"Version {__version__}", "PageSub")):
+            lbl = label(text, name)
+            lbl.setAlignment(Qt.AlignCenter)
+            layout.addWidget(lbl)
+        layout.addSpacing(6)
+        blurb = label("Keep every SSH server in one place and connect with one click.", wrap=True)
+        blurb.setAlignment(Qt.AlignCenter)
+        layout.addWidget(blurb)
+        credit = label(f"Created by <a href='{AUTHOR_URL}' style='color:#3b82f6; font-weight:600; "
+                       f"text-decoration:none'>{AUTHOR}</a>", wrap=True)
+        credit.setOpenExternalLinks(True)
+        credit.setAlignment(Qt.AlignCenter)
+        layout.addWidget(credit)
+        lic = label(f"Free and open source under the {LICENSE}.", muted=True, wrap=True)
+        lic.setAlignment(Qt.AlignCenter)
+        layout.addWidget(lic)
+        layout.addSpacing(10)
+        row = QHBoxLayout()
+        for text, url, variant in (("★  Star on GitHub", REPO_URL, "primary"),
+                                   ("Report an issue", REPO_URL + "/issues", ""),
+                                   ("Close", None, "")):
+            b = button(text, variant)
+            if url:
+                b.clicked.connect(lambda _=False, u=url: QDesktopServices.openUrl(QUrl(u)))
+            else:
+                b.clicked.connect(self.accept)
+            row.addWidget(b)
+        layout.addLayout(row)
+        self.setMinimumWidth(int(520 * QApplication.font().pointSize() / 11))
+
+
 class SettingsDialog(QDialog):
     def __init__(self, parent, inv: Inventory):
         super().__init__(parent)
@@ -815,6 +859,7 @@ class MainWindow(QMainWindow):
         run_bg = side_button("Run in background", "background", self.hide_to_background)
         run_bg.setToolTip("Hide the window but keep the app running (run ssh-manager to bring it back)")
         lay.addWidget(run_bg)
+        lay.addWidget(side_button("About", "info", lambda: AboutDialog(self).exec()))
         lay.addWidget(side_button("Quit", "power", self.quit_app))
         return side
 

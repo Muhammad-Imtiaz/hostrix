@@ -1,37 +1,86 @@
+<div align="center">
+
+<img src="sshmgr/assets/ssh-manager.svg" width="96" alt="SSH Manager logo">
+
 # SSH Manager
 
-A desktop app for keeping an inventory of SSH servers and opening a session with one click,
-so you don't have to remember IPs, hostnames, users, keys or jump hosts. Runs on Ubuntu, macOS and Windows.
+**Every SSH server in one place. One click to connect.**
 
-**[⬇ Download the latest release](https://github.com/imtiaz9832/ssh-manager/releases/latest)**
+A free, open-source desktop app for people who SSH into more servers than they can remember:
+IPs, users, keys, jump hosts and VPN-only networks, all in one searchable list.
+
+[![Latest release](https://img.shields.io/github/v/release/imtiaz9832/ssh-manager?label=release&color=2563eb)](https://github.com/imtiaz9832/ssh-manager/releases/latest)
+[![Downloads](https://img.shields.io/github/downloads/imtiaz9832/ssh-manager/total?color=16a34a)](https://github.com/imtiaz9832/ssh-manager/releases)
+[![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
+[![Platforms](https://img.shields.io/badge/platforms-Ubuntu%20%7C%20macOS%20%7C%20Windows-0f172a)](#install)
+[![Build](https://img.shields.io/github/actions/workflow/status/imtiaz9832/ssh-manager/release.yml?label=build)](https://github.com/imtiaz9832/ssh-manager/actions/workflows/release.yml)
+[![GitHub stars](https://img.shields.io/github/stars/imtiaz9832/ssh-manager?style=social)](https://github.com/imtiaz9832/ssh-manager/stargazers)
+
+### Download
+
+[**macOS** (Apple Silicon)](https://github.com/imtiaz9832/ssh-manager/releases/latest/download/ssh-manager-macos-arm64.dmg) &nbsp;·&nbsp;
+[**Windows** (installer)](https://github.com/imtiaz9832/ssh-manager/releases/latest/download/ssh-manager-windows-x64-setup.exe) &nbsp;·&nbsp;
+[**Ubuntu / Debian** (.deb)](https://github.com/imtiaz9832/ssh-manager/releases/latest/download/ssh-manager-linux-amd64.deb) &nbsp;·&nbsp;
+[All downloads](https://github.com/imtiaz9832/ssh-manager/releases/latest)
+
+</div>
 
 ![SSH Manager](docs/screenshots/main-light.png)
 
-- Table of servers: name, hostname, IP, public IP, user, group, access (Direct / VPN / via jump host), description
-- Search matches any of them, including the public IP
-- Details panel: key path (warns if the file is missing), jump host, full `ssh` command
-- Add, edit, duplicate and delete servers; group filter and instant search
-- **Connect** (double-click / Enter) opens a new terminal tab running ssh
-- **Test** / **Check all**: TCP check of port 22 on the first hop (hints "VPN connected?" for VPN servers)
-- **Fetch hostname(s)**: logs in non-interactively and fills in each server's real hostname
-- Import from `~/.ssh/config` or JSON, export to JSON
-- Web-dashboard style UI: light / dark / system theme, adjustable font size (applies instantly), right-click menu, toasts
-- Resizable panels: drag the borders between the sidebar, server list and details; the layout is remembered
-- Can run in the background: **Run in background** hides the window; run `ssh-manager` again to bring it back
+## Why
+
+If your day involves a text file of IP addresses, a few shell scripts, a note on which servers need the VPN, and
+long `ssh -i … -o ProxyCommand=…` commands copied from somewhere, SSH Manager replaces all of it. Find the server,
+click **Connect**, and a new terminal opens with the session ready.
+
+## Features
+
+**Your servers in one place**
+- Name, hostname, IP, public IP, user, group, access and description at a glance
+- Groups in the sidebar and instant search across every field, public IP included
+- Add, edit, duplicate and delete servers, or import your existing `~/.ssh/config`
+
+**One-click connect**
+- **Connect** (double-click or Enter) opens a new terminal tab: Windows Terminal, Terminal.app or your Linux terminal
+- Jump hosts built in, no more long `ProxyCommand` lines
+- Per-server user, key, port and extra `ssh -o` options, with defaults for everything else
+
+**Know what's reachable**
+- **Check all** tests port 22 on every server in parallel and shows a summary
+- VPN-only servers are tagged, with a "VPN connected?" hint when they're unreachable
+- **Fetch hostname** logs in and records each server's real hostname
+
+**Works the way you do**
+- Light, dark or system theme, and a font size the whole layout scales with
+- Resizable panels; the layout is remembered
+- Optional background mode: hide the window, bring it back with `ssh-manager`
+- A plain JSON inventory you can share with your team
+- A generated `ssh_config`, so `ssh <name>`, `scp` and VS Code Remote-SSH use the same list
+- A CLI for terminal users
+
+## Privacy and security
+
+- **No telemetry, no accounts, no cloud.** Nothing leaves your machine.
+- **Your keys stay where they are.** SSH Manager stores only the key *path* and runs your system's own OpenSSH
+  client, so authentication works exactly as it does in a terminal.
+- **Everything is readable:** the inventory is a JSON file, and the code is right here.
+
+Found a security issue? See [SECURITY.md](SECURITY.md).
 
 ## Install
 
-Download the package for your system from the
-[latest release](https://github.com/imtiaz9832/ssh-manager/releases/latest). Each one is self-contained
-(Python and Qt included); you only need an OpenSSH client, which ships with all three systems.
+Each package is self-contained (Python and Qt included). You only need an OpenSSH client, which ships with
+Ubuntu, macOS and Windows 10/11.
 
 | System | Download | Install |
 |---|---|---|
-| Ubuntu / Debian (x86_64) | `ssh-manager_<version>_amd64.deb` | `sudo apt install ./ssh-manager_<version>_amd64.deb` |
-| Other Linux (x86_64) | `ssh-manager-<version>-linux-x86_64.tar.gz` | Extract and run `ssh-manager/ssh-manager` |
-| macOS 13+ (Apple Silicon) | `ssh-manager-<version>-macos-arm64.dmg` | Drag **SSH Manager** to Applications |
-| Windows 10 / 11 (x64) | `ssh-manager-<version>-windows-x64-setup.exe` | Run the installer (no admin needed) |
-| Windows, portable | `ssh-manager-<version>-windows-x64-portable.zip` | Extract and run `ssh-manager.exe` |
+| Ubuntu / Debian (x86_64) | [`ssh-manager-linux-amd64.deb`](https://github.com/imtiaz9832/ssh-manager/releases/latest/download/ssh-manager-linux-amd64.deb) | `sudo apt install ./ssh-manager-linux-amd64.deb` |
+| Other Linux (x86_64) | [`ssh-manager-linux-x86_64.tar.gz`](https://github.com/imtiaz9832/ssh-manager/releases/latest/download/ssh-manager-linux-x86_64.tar.gz) | Extract and run `ssh-manager/ssh-manager` |
+| macOS 13+ (Apple Silicon) | [`ssh-manager-macos-arm64.dmg`](https://github.com/imtiaz9832/ssh-manager/releases/latest/download/ssh-manager-macos-arm64.dmg) | Open it and drag **SSH Manager** to Applications |
+| Windows 10 / 11 (x64) | [`ssh-manager-windows-x64-setup.exe`](https://github.com/imtiaz9832/ssh-manager/releases/latest/download/ssh-manager-windows-x64-setup.exe) | Run the installer (no admin needed) |
+| Windows, portable | [`ssh-manager-windows-x64-portable.zip`](https://github.com/imtiaz9832/ssh-manager/releases/latest/download/ssh-manager-windows-x64-portable.zip) | Extract and run `ssh-manager.exe` |
+
+Every release also lists the same files with the version in the name, plus `SHA256SUMS.txt`.
 
 The apps aren't code-signed yet. On **macOS**, if it says the app is damaged or can't be opened, run
 `xattr -dr com.apple.quarantine "/Applications/SSH Manager.app"` once. On **Windows**, if SmartScreen
@@ -194,3 +243,29 @@ Ubuntu, macOS and Windows, smoke-tests each build, and publishes a GitHub releas
 # bump __version__ in sshmgr/__init__.py and pyproject.toml, add docs/releases/vX.Y.Z.md, commit, then:
 git tag -a vX.Y.Z -m "vX.Y.Z" && git push origin vX.Y.Z
 ```
+
+## Roadmap
+
+Ideas being considered. Open an issue to vote or suggest more:
+
+- Signed and notarized macOS and Windows builds, and an Intel Mac build
+- Homebrew, winget and Snap packages
+- A team-shared inventory
+- Multi-hop jump hosts
+
+## Contributing
+
+Bug reports, ideas and pull requests are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) to get started, and
+the [changelog](CHANGELOG.md) for what's new.
+
+## Author
+
+Created and maintained by **Muhammad Imtiaz** ([@imtiaz9832](https://github.com/imtiaz9832)).
+
+If SSH Manager saves you time, a ⭐ on the repo helps others find it.
+
+## License
+
+[Apache License 2.0](LICENSE). Free for personal and commercial use. If you redistribute it or build on it,
+keep the [NOTICE](NOTICE) file with the author credit.
+

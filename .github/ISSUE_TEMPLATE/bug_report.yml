@@ -1,0 +1,57 @@
+name: Bug report
+description: Something doesn't work as expected
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting! Please remove real IP addresses, hostnames and usernames from anything you paste.
+        For security issues, use the Security tab instead of a public issue.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What did you do, what did you expect, and what happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Add a server with a jump host
+        2. Click Connect
+        3. ...
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: SSH Manager version
+      description: Shown in **About** in the sidebar, or run `ssh-manager --version`
+      placeholder: "0.5.0"
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - Ubuntu / Debian
+        - Other Linux
+        - WSL on Windows
+        - macOS
+        - Windows
+    validations:
+      required: true
+  - type: input
+    id: os_version
+    attributes:
+      label: OS version
+      placeholder: "Ubuntu 24.04, macOS 15.1, Windows 11 24H2…"
+  - type: textarea
+    id: logs
+    attributes:
+      label: Error message or log
+      description: Linux/macOS log is in `~/.config/ssh-manager/ssh-manager.log` (or run with `--foreground`)
+      render: text

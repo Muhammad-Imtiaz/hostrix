@@ -40,6 +40,8 @@ def pyinstaller():
     args = [sys.executable, "-m", "PyInstaller", "--noconfirm", "--clean", "--onedir", "--windowed",
             "--name", "ssh-manager",
             "--add-data", f"{ROOT / 'sshmgr' / 'assets'}{os.pathsep}sshmgr/assets",
+            "--add-data", f"{ROOT / 'LICENSE'}{os.pathsep}.",
+            "--add-data", f"{ROOT / 'NOTICE'}{os.pathsep}.",
             "--paths", str(ROOT), "--hidden-import", "sshmgr.gui",
             "--exclude-module", "tkinter",
             "--distpath", str(DIST), "--workpath", str(ROOT / "build" / "pyinstaller"),
@@ -64,7 +66,8 @@ def linux():
         tar.add(app, arcname=f"{top}/ssh-manager")
         tar.add(ROOT / "packaging" / "ssh-manager.desktop", arcname=f"{top}/ssh-manager.desktop")
         tar.add(ROOT / "sshmgr" / "assets" / "ssh-manager.svg", arcname=f"{top}/ssh-manager.svg")
-        tar.add(ROOT / "README.md", arcname=f"{top}/README.md")
+        for doc in ("README.md", "LICENSE", "NOTICE"):
+            tar.add(ROOT / doc, arcname=f"{top}/{doc}")
 
     if not shutil.which("dpkg-deb"):
         print("dpkg-deb not found: skipping .deb")
@@ -82,6 +85,10 @@ def linux():
     if from_png.exists():
         shutil.copy(from_png, pkg / "usr/share/icons/hicolor/256x256/apps/ssh-manager.png")
     shutil.copy(ROOT / "README.md", pkg / "usr/share/doc/ssh-manager/")
+    shutil.copy(ROOT / "NOTICE", pkg / "usr/share/doc/ssh-manager/")
+    (pkg / "usr/share/doc/ssh-manager/copyright").write_text(
+        "SSH Manager\nCopyright 2026 Muhammad Imtiaz <https://github.com/imtiaz9832>\n"
+        "License: Apache-2.0\n\n" + (ROOT / "LICENSE").read_text())
     (pkg / "DEBIAN" / "control").write_text(f"""Package: ssh-manager
 Version: {VERSION}
 Section: net
@@ -110,6 +117,7 @@ def macos():
         "CFBundleName": APP_NAME, "CFBundleDisplayName": APP_NAME,
         "CFBundleShortVersionString": VERSION, "CFBundleVersion": VERSION,
         "NSHighResolutionCapable": True, "LSApplicationCategoryType": "public.app-category.developer-tools",
+        "NSHumanReadableCopyright": "Copyright 2026 Muhammad Imtiaz. Apache License 2.0.",
     })
     plist_path.write_bytes(plistlib.dumps(plist))
     # Info.plist changed after PyInstaller signed it: re-sign ad hoc, or Apple Silicon refuses to start it
@@ -128,6 +136,8 @@ def macos():
 def windows():
     app = DIST / "ssh-manager"
     base = f"ssh-manager-{VERSION}-windows-x64"
+    for doc in ("LICENSE", "NOTICE"):
+        shutil.copy(ROOT / doc, app / f"{doc}.txt")
     shutil.make_archive(str(RELEASE / f"{base}-portable"), "zip", root_dir=DIST, base_dir="ssh-manager")
 
     iscc = shutil.which("iscc") or next(
@@ -138,6 +148,7 @@ def windows():
         return
     run([str(iscc), f"/DAppVersion={VERSION}", f"/DSourceDir={app}", f"/DOutputDir={RELEASE}",
          f"/DIconFile={ICONS / 'ssh-manager.ico'}", f"/DOutputBase={base}-setup",
+         f"/DLicenseFile={ROOT / 'LICENSE'}",
          str(ROOT / "packaging" / "windows" / "ssh-manager.iss")])
 
 
