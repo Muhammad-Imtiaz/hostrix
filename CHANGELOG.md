@@ -3,7 +3,7 @@
 All notable changes to Hostrix (called SSH Manager before the rename). Each version has full release
 notes on the [releases page](https://github.com/Muhammad-Imtiaz/hostrix/releases).
 
-## Unreleased
+## 0.5.0
 
 - **Renamed to Hostrix:** the app, the `hostrix` command, the packages and the repository
   (github.com/Muhammad-Imtiaz/hostrix)
@@ -12,9 +12,6 @@ notes on the [releases page](https://github.com/Muhammad-Imtiaz/hostrix/releases
 - Start-on-login moves over to Hostrix automatically; `SSH_MANAGER_HOME` still works as an alias for
   the new `HOSTRIX_HOME`
 - The Ubuntu/Debian package replaces an installed `ssh-manager` package
-
-## 0.5.0
-
 - Open source under the Apache License 2.0, with a NOTICE file crediting the author
 - **About** in the sidebar: version, author, license, and links to star the repo or report an issue
 - Releases include version-free file names, so the README's download buttons always fetch the latest build
