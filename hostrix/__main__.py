@@ -1,15 +1,15 @@
 """Entry point: GUI by default, plus a few CLI helpers.
 
-    ssh-manager                      open the GUI (detaches from the terminal)
-    ssh-manager --hidden             start in the background without a window
-    ssh-manager --foreground         keep the GUI attached to the terminal
-    ssh-manager show | quit          show / stop the running instance
-    ssh-manager connect NAME         ssh into NAME in the current terminal
-    ssh-manager list                 print the inventory
-    ssh-manager command NAME         print the full ssh command for NAME
-    ssh-manager fetch-hostnames [NAME...]  log in and record each server's hostname
-    ssh-manager import FILE.json     merge servers from a JSON file
-    ssh-manager import-ssh-config [PATH]   merge hosts from an OpenSSH config
+    hostrix                      open the GUI (detaches from the terminal)
+    hostrix --hidden             start in the background without a window
+    hostrix --foreground         keep the GUI attached to the terminal
+    hostrix show | quit          show / stop the running instance
+    hostrix connect NAME         ssh into NAME in the current terminal
+    hostrix list                 print the inventory
+    hostrix command NAME         print the full ssh command for NAME
+    hostrix fetch-hostnames [NAME...]  log in and record each server's hostname
+    hostrix import FILE.json     merge servers from a JSON file
+    hostrix import-ssh-config [PATH]   merge hosts from an OpenSSH config
 """
 
 from __future__ import annotations
@@ -21,7 +21,7 @@ import sys
 from pathlib import Path
 
 from . import AUTHOR, __version__
-from .inventory import Inventory, InventoryError, Server, parse_ssh_config
+from .inventory import Inventory, InventoryError, Server, migrate_legacy_config, parse_ssh_config
 
 
 def _merge(inv: Inventory, servers: list[Server]) -> None:
@@ -70,8 +70,8 @@ def _fetch_hostnames(inv: Inventory, names: list[str], refresh: bool) -> int:
 
 
 def main(argv: list[str] | None = None) -> int:
-    p = argparse.ArgumentParser(prog="ssh-manager", description="SSH server inventory and launcher")
-    p.add_argument("--version", action="version", version=f"ssh-manager {__version__} by {AUTHOR}")
+    p = argparse.ArgumentParser(prog="hostrix", description="SSH server inventory and launcher")
+    p.add_argument("--version", action="version", version=f"hostrix {__version__} by {AUTHOR}")
     p.add_argument("--inventory", type=Path, help="path to inventory.json")
     p.add_argument("--hidden", action="store_true", help="start in the background without showing the window")
     p.add_argument("--foreground", action="store_true", help="do not detach from the terminal")
@@ -94,7 +94,14 @@ def main(argv: list[str] | None = None) -> int:
     c.add_argument("file", type=Path, nargs="?", default=Path.home() / ".ssh" / "config")
     args = p.parse_args(argv)
 
+    migrated_from = None if args.inventory else migrate_legacy_config()
     inv = Inventory(args.inventory)
+    if migrated_from:
+        inv.write_ssh_config()
+        from .background import migrate_legacy_autostart
+        migrate_legacy_autostart()
+        print(f"Hostrix: copied your servers and settings from {migrated_from} (left unchanged).",
+              file=sys.stderr)
 
     if args.cmd == "selftest":
         os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
@@ -109,7 +116,7 @@ def main(argv: list[str] | None = None) -> int:
         if send_command(args.cmd):
             return 0
         if args.cmd == "quit":
-            print("SSH Manager is not running.")
+            print("Hostrix is not running.")
             return 0
         args.cmd = None  # nothing to show: start it
     if args.cmd in (None, "gui"):

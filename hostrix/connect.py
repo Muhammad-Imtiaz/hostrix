@@ -121,7 +121,7 @@ def self_command() -> list[str]:
     """argv that re-invokes this program (frozen binary or python module)."""
     if getattr(sys, "frozen", False):
         return [sys.executable]
-    return [sys.executable, "-m", "sshmgr"]
+    return [sys.executable, "-m", "hostrix"]
 
 
 def child_env() -> dict:
@@ -197,7 +197,7 @@ def terminal_argv(cmd: list[str], title: str, template: str = "auto") -> list[st
 
 
 def open_in_terminal(inv: Inventory, s: Server) -> tuple[subprocess.Popen, "tempfile._TemporaryFileWrapper", list[str]]:
-    """Open a new terminal window running `ssh-manager connect <name>`.
+    """Open a new terminal window running `hostrix connect <name>`.
 
     Returns the launcher process and a file collecting its output, so the caller can
     report a terminal that crashes on startup instead of failing silently.

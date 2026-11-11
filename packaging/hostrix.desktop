@@ -1,10 +1,10 @@
 [Desktop Entry]
 Type=Application
-Name=SSH Manager
+Name=Hostrix
 Comment=Pick a server and open an SSH session
-Exec=ssh-manager
-Icon=ssh-manager
+Exec=hostrix
+Icon=hostrix
 Terminal=false
 Categories=Network;RemoteAccess;Utility;
 Keywords=ssh;server;terminal;remote;
-StartupWMClass=ssh-manager
+StartupWMClass=hostrix

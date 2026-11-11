@@ -1,7 +1,17 @@
 # Changelog
 
-All notable changes to SSH Manager. Each version has full release notes on the
-[releases page](https://github.com/imtiaz9832/ssh-manager/releases).
+All notable changes to Hostrix (called SSH Manager before the rename). Each version has full release
+notes on the [releases page](https://github.com/Muhammad-Imtiaz/hostrix/releases).
+
+## Unreleased
+
+- **Renamed to Hostrix:** the app, the `hostrix` command, the packages and the repository
+  (github.com/Muhammad-Imtiaz/hostrix)
+- On first start, your servers and settings are copied from the old `ssh-manager` folder into the new
+  `hostrix` folder; the old folder is left as it was
+- Start-on-login moves over to Hostrix automatically; `SSH_MANAGER_HOME` still works as an alias for
+  the new `HOSTRIX_HOME`
+- The Ubuntu/Debian package replaces an installed `ssh-manager` package
 
 ## 0.5.0
 

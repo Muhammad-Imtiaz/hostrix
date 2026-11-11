@@ -14,7 +14,7 @@ reply as soon as possible, and credit in the release notes once it's fixed, if y
 
 Security fixes go into the latest release. Please upgrade before reporting.
 
-## How SSH Manager handles your data
+## How Hostrix handles your data
 
 - It stores your server list in a local JSON file and never sends it anywhere.
 - It stores only the *path* to each SSH key, never the key itself.

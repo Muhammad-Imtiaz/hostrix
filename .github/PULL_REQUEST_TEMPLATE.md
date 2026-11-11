@@ -6,5 +6,5 @@
 
 <!-- OS, and what you clicked or ran. Screenshots help for visual changes; please use sample data. -->
 
-- [ ] The app starts (`ssh-manager selftest` or running it)
+- [ ] The app starts (`hostrix selftest` or running it)
 - [ ] Checked in light and dark theme (for visual changes)

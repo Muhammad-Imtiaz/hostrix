@@ -1,13 +1,13 @@
-# Contributing to SSH Manager
+# Contributing to Hostrix
 
-Thanks for helping make SSH Manager better. Bug reports, ideas, docs fixes and code are all welcome.
+Thanks for helping make Hostrix better. Bug reports, ideas, docs fixes and code are all welcome.
 
 ## Reporting bugs and asking for features
 
-- **Bugs:** open a [bug report](https://github.com/imtiaz9832/ssh-manager/issues/new?template=bug_report.yml).
-  Include your OS and version, the SSH Manager version (**About** in the sidebar), and the steps to reproduce.
+- **Bugs:** open a [bug report](https://github.com/Muhammad-Imtiaz/hostrix/issues/new?template=bug_report.yml).
+  Include your OS and version, the Hostrix version (**About** in the sidebar), and the steps to reproduce.
   Remove real IP addresses, hostnames and usernames from anything you paste.
-- **Ideas:** open a [feature request](https://github.com/imtiaz9832/ssh-manager/issues/new?template=feature_request.yml)
+- **Ideas:** open a [feature request](https://github.com/Muhammad-Imtiaz/hostrix/issues/new?template=feature_request.yml)
   and describe the problem you're trying to solve.
 - **Security issues:** please don't open a public issue. See [SECURITY.md](SECURITY.md).
 
@@ -16,31 +16,31 @@ Thanks for helping make SSH Manager better. Bug reports, ideas, docs fixes and c
 You need Python 3.10 or newer and an OpenSSH client.
 
 ```bash
-git clone https://github.com/imtiaz9832/ssh-manager.git
-cd ssh-manager
+git clone https://github.com/Muhammad-Imtiaz/hostrix.git
+cd hostrix
 python3 -m venv .venv
 .venv/bin/pip install -e .
-.venv/bin/python -m sshmgr --foreground
+.venv/bin/python -m hostrix --foreground
 ```
 
 To work with a throwaway inventory instead of your real one, point the app at another folder:
 
 ```bash
-SSH_MANAGER_HOME=/tmp/ssh-manager-dev .venv/bin/python -m sshmgr --foreground
+HOSTRIX_HOME=/tmp/hostrix-dev .venv/bin/python -m hostrix --foreground
 ```
 
-`ssh-manager selftest` builds the main window off-screen and exits, a quick check that the app still starts.
+`hostrix selftest` builds the main window off-screen and exits, a quick check that the app still starts.
 
 ## Code layout
 
 | File | What it does |
 |---|---|
-| `sshmgr/inventory.py` | Server and settings model, JSON load/save, `ssh_config` export and import |
-| `sshmgr/connect.py` | Builds ssh commands, reachability checks, opening terminals on each OS |
-| `sshmgr/gui.py` | The Qt user interface |
-| `sshmgr/theme.py` | Colours, stylesheet and icons |
-| `sshmgr/background.py` | Background mode, single instance, autostart |
-| `packaging/` | Release builds (`build.py`), the Windows installer script, icons |
+| `hostrix/inventory.py` | Server and settings model, JSON load/save, `ssh_config` export and import |
+| `hostrix/connect.py` | Builds ssh commands, reachability checks, opening terminals on each OS |
+| `hostrix/gui.py` | The Qt user interface |
+| `hostrix/theme.py` | Colours, stylesheet and icons |
+| `hostrix/background.py` | Background mode, single instance, autostart |
+| `packaging/` | Release builds (`build.py`), the Windows installer script, icons, README screenshots (`screenshots.py`) |
 
 ## Pull requests
 

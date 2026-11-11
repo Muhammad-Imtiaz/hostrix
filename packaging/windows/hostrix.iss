@@ -1,8 +1,8 @@
 ; Inno Setup script for the Windows installer. Built by packaging/build.py, which passes
 ; AppVersion, SourceDir (the PyInstaller folder), OutputDir, OutputBase and IconFile.
 
-#define AppName "SSH Manager"
-#define AppExe "ssh-manager.exe"
+#define AppName "Hostrix"
+#define AppExe "hostrix.exe"
 
 [Setup]
 AppId={{8C1E5B5A-2F7B-4F0B-9A55-5D1C3E8B7A10}
@@ -11,8 +11,8 @@ AppVersion={#AppVersion}
 AppVerName={#AppName} {#AppVersion}
 AppPublisher=Muhammad Imtiaz
 AppCopyright=Copyright 2026 Muhammad Imtiaz
-AppPublisherURL=https://github.com/imtiaz9832/ssh-manager
-AppSupportURL=https://github.com/imtiaz9832/ssh-manager/issues
+AppPublisherURL=https://github.com/Muhammad-Imtiaz/hostrix
+AppSupportURL=https://github.com/Muhammad-Imtiaz/hostrix/issues
 DefaultDirName={autopf}\{#AppName}
 DefaultGroupName={#AppName}
 DisableProgramGroupPage=yes

@@ -1,14 +1,14 @@
 cff-version: 1.2.0
-message: "If you use or reference SSH Manager, please cite it as below."
-title: "SSH Manager"
+message: "If you use or reference Hostrix, please cite it as below."
+title: "Hostrix"
 abstract: "A desktop app that keeps an inventory of SSH servers and opens a session with one click, with jump hosts, VPN hints and live reachability checks."
 type: software
 authors:
   - family-names: "Imtiaz"
     given-names: "Muhammad"
-    alias: "imtiaz9832"
-repository-code: "https://github.com/imtiaz9832/ssh-manager"
-url: "https://github.com/imtiaz9832/ssh-manager"
+    alias: "Muhammad-Imtiaz"
+repository-code: "https://github.com/Muhammad-Imtiaz/hostrix"
+url: "https://github.com/Muhammad-Imtiaz/hostrix"
 license: Apache-2.0
 version: "0.5.0"
 date-released: "2026-11-07"

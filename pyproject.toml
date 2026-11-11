@@ -3,7 +3,7 @@ requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "ssh-manager"
+name = "hostrix"
 version = "0.5.0"
 description = "Keep every SSH server in one place and connect with one click"
 readme = "README.md"
@@ -27,16 +27,16 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/imtiaz9832/ssh-manager"
-Download = "https://github.com/imtiaz9832/ssh-manager/releases/latest"
-Issues = "https://github.com/imtiaz9832/ssh-manager/issues"
-Changelog = "https://github.com/imtiaz9832/ssh-manager/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/Muhammad-Imtiaz/hostrix"
+Download = "https://github.com/Muhammad-Imtiaz/hostrix/releases/latest"
+Issues = "https://github.com/Muhammad-Imtiaz/hostrix/issues"
+Changelog = "https://github.com/Muhammad-Imtiaz/hostrix/blob/main/CHANGELOG.md"
 
 [project.scripts]
-ssh-manager = "sshmgr.__main__:main"
+hostrix = "hostrix.__main__:main"
 
 [tool.setuptools]
-packages = ["sshmgr"]
+packages = ["hostrix"]
 
 [tool.setuptools.package-data]
-sshmgr = ["assets/*"]
+hostrix = ["assets/*"]

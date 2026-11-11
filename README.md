@@ -1,36 +1,36 @@
 <div align="center">
 
-<img src="sshmgr/assets/ssh-manager.svg" width="96" alt="SSH Manager logo">
+<img src="hostrix/assets/hostrix.svg" width="96" alt="Hostrix logo">
 
-# SSH Manager
+# Hostrix
 
-**Every SSH server in one place. One click to connect.**
+**Your entire server fleet, connected.**
 
 A free, open-source desktop app for people who SSH into more servers than they can remember:
 IPs, users, keys, jump hosts and VPN-only networks, all in one searchable list.
 
-[![Latest release](https://img.shields.io/github/v/release/imtiaz9832/ssh-manager?label=release&color=2563eb)](https://github.com/imtiaz9832/ssh-manager/releases/latest)
-[![Downloads](https://img.shields.io/github/downloads/imtiaz9832/ssh-manager/total?color=16a34a)](https://github.com/imtiaz9832/ssh-manager/releases)
+[![Latest release](https://img.shields.io/github/v/release/Muhammad-Imtiaz/hostrix?label=release&color=2563eb)](https://github.com/Muhammad-Imtiaz/hostrix/releases/latest)
+[![Downloads](https://img.shields.io/github/downloads/Muhammad-Imtiaz/hostrix/total?color=16a34a)](https://github.com/Muhammad-Imtiaz/hostrix/releases)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
 [![Platforms](https://img.shields.io/badge/platforms-Ubuntu%20%7C%20macOS%20%7C%20Windows-0f172a)](#install)
-[![Build](https://img.shields.io/github/actions/workflow/status/imtiaz9832/ssh-manager/release.yml?label=build)](https://github.com/imtiaz9832/ssh-manager/actions/workflows/release.yml)
-[![GitHub stars](https://img.shields.io/github/stars/imtiaz9832/ssh-manager?style=social)](https://github.com/imtiaz9832/ssh-manager/stargazers)
+[![Build](https://img.shields.io/github/actions/workflow/status/Muhammad-Imtiaz/hostrix/release.yml?label=build)](https://github.com/Muhammad-Imtiaz/hostrix/actions/workflows/release.yml)
+[![GitHub stars](https://img.shields.io/github/stars/Muhammad-Imtiaz/hostrix?style=social)](https://github.com/Muhammad-Imtiaz/hostrix/stargazers)
 
 ### Download
 
-[**macOS** (Apple Silicon)](https://github.com/imtiaz9832/ssh-manager/releases/latest/download/ssh-manager-macos-arm64.dmg) &nbsp;·&nbsp;
-[**Windows** (installer)](https://github.com/imtiaz9832/ssh-manager/releases/latest/download/ssh-manager-windows-x64-setup.exe) &nbsp;·&nbsp;
-[**Ubuntu / Debian** (.deb)](https://github.com/imtiaz9832/ssh-manager/releases/latest/download/ssh-manager-linux-amd64.deb) &nbsp;·&nbsp;
-[All downloads](https://github.com/imtiaz9832/ssh-manager/releases/latest)
+[**macOS** (Apple Silicon)](https://github.com/Muhammad-Imtiaz/hostrix/releases/latest/download/hostrix-macos-arm64.dmg) &nbsp;·&nbsp;
+[**Windows** (installer)](https://github.com/Muhammad-Imtiaz/hostrix/releases/latest/download/hostrix-windows-x64-setup.exe) &nbsp;·&nbsp;
+[**Ubuntu / Debian** (.deb)](https://github.com/Muhammad-Imtiaz/hostrix/releases/latest/download/hostrix-linux-amd64.deb) &nbsp;·&nbsp;
+[All downloads](https://github.com/Muhammad-Imtiaz/hostrix/releases/latest)
 
 </div>
 
-![SSH Manager](docs/screenshots/main-light.png)
+![Hostrix](docs/screenshots/main-light.png)
 
 ## Why
 
 If your day involves a text file of IP addresses, a few shell scripts, a note on which servers need the VPN, and
-long `ssh -i … -o ProxyCommand=…` commands copied from somewhere, SSH Manager replaces all of it. Find the server,
+long `ssh -i … -o ProxyCommand=…` commands copied from somewhere, Hostrix replaces all of it. Find the server,
 click **Connect**, and a new terminal opens with the session ready.
 
 ## Features
@@ -53,7 +53,7 @@ click **Connect**, and a new terminal opens with the session ready.
 **Works the way you do**
 - Light, dark or system theme, and a font size the whole layout scales with
 - Resizable panels; the layout is remembered
-- Optional background mode: hide the window, bring it back with `ssh-manager`
+- Optional background mode: hide the window, bring it back with `hostrix`
 - A plain JSON inventory you can share with your team
 - A generated `ssh_config`, so `ssh <name>`, `scp` and VS Code Remote-SSH use the same list
 - A CLI for terminal users
@@ -61,7 +61,7 @@ click **Connect**, and a new terminal opens with the session ready.
 ## Privacy and security
 
 - **No telemetry, no accounts, no cloud.** Nothing leaves your machine.
-- **Your keys stay where they are.** SSH Manager stores only the key *path* and runs your system's own OpenSSH
+- **Your keys stay where they are.** Hostrix stores only the key *path* and runs your system's own OpenSSH
   client, so authentication works exactly as it does in a terminal.
 - **Everything is readable:** the inventory is a JSON file, and the code is right here.
 
@@ -74,31 +74,31 @@ Ubuntu, macOS and Windows 10/11.
 
 | System | Download | Install |
 |---|---|---|
-| Ubuntu / Debian (x86_64) | [`ssh-manager-linux-amd64.deb`](https://github.com/imtiaz9832/ssh-manager/releases/latest/download/ssh-manager-linux-amd64.deb) | `sudo apt install ./ssh-manager-linux-amd64.deb` |
-| Other Linux (x86_64) | [`ssh-manager-linux-x86_64.tar.gz`](https://github.com/imtiaz9832/ssh-manager/releases/latest/download/ssh-manager-linux-x86_64.tar.gz) | Extract and run `ssh-manager/ssh-manager` |
-| macOS 13+ (Apple Silicon) | [`ssh-manager-macos-arm64.dmg`](https://github.com/imtiaz9832/ssh-manager/releases/latest/download/ssh-manager-macos-arm64.dmg) | Open it and drag **SSH Manager** to Applications |
-| Windows 10 / 11 (x64) | [`ssh-manager-windows-x64-setup.exe`](https://github.com/imtiaz9832/ssh-manager/releases/latest/download/ssh-manager-windows-x64-setup.exe) | Run the installer (no admin needed) |
-| Windows, portable | [`ssh-manager-windows-x64-portable.zip`](https://github.com/imtiaz9832/ssh-manager/releases/latest/download/ssh-manager-windows-x64-portable.zip) | Extract and run `ssh-manager.exe` |
+| Ubuntu / Debian (x86_64) | [`hostrix-linux-amd64.deb`](https://github.com/Muhammad-Imtiaz/hostrix/releases/latest/download/hostrix-linux-amd64.deb) | `sudo apt install ./hostrix-linux-amd64.deb` |
+| Other Linux (x86_64) | [`hostrix-linux-x86_64.tar.gz`](https://github.com/Muhammad-Imtiaz/hostrix/releases/latest/download/hostrix-linux-x86_64.tar.gz) | Extract and run `hostrix/hostrix` |
+| macOS 13+ (Apple Silicon) | [`hostrix-macos-arm64.dmg`](https://github.com/Muhammad-Imtiaz/hostrix/releases/latest/download/hostrix-macos-arm64.dmg) | Open it and drag **Hostrix** to Applications |
+| Windows 10 / 11 (x64) | [`hostrix-windows-x64-setup.exe`](https://github.com/Muhammad-Imtiaz/hostrix/releases/latest/download/hostrix-windows-x64-setup.exe) | Run the installer (no admin needed) |
+| Windows, portable | [`hostrix-windows-x64-portable.zip`](https://github.com/Muhammad-Imtiaz/hostrix/releases/latest/download/hostrix-windows-x64-portable.zip) | Extract and run `hostrix.exe` |
 
 Every release also lists the same files with the version in the name, plus `SHA256SUMS.txt`.
 
 The apps aren't code-signed yet. On **macOS**, if it says the app is damaged or can't be opened, run
-`xattr -dr com.apple.quarantine "/Applications/SSH Manager.app"` once. On **Windows**, if SmartScreen
+`xattr -dr com.apple.quarantine "/Applications/Hostrix.app"` once. On **Windows**, if SmartScreen
 appears, click **More info → Run anyway**.
 
 When upgrading, click **Quit** in the running app first, so the new version starts fresh.
 
 ## Background mode
 
-- `ssh-manager` started from a terminal detaches right away and gives you the prompt back.
+- `hostrix` started from a terminal detaches right away and gives you the prompt back.
 - The close button (✕) quits the app. To keep it running, click **Run in background** in the sidebar, or turn on
-  "Keep running in the background when the window is closed" in Settings. Run `ssh-manager` again, or open it
+  "Keep running in the background when the window is closed" in Settings. Run `hostrix` again, or open it
   from the app menu, to bring the same window back. Only one instance runs at a time.
-- `ssh-manager --hidden` starts it without a window; `ssh-manager quit` stops it.
+- `hostrix --hidden` starts it without a window; `hostrix quit` stops it.
 - On desktops with a system tray, a tray icon shows/hides the window and has a quick-connect menu.
   On Linux desktops (not WSL), Settings can start it in the background when you log in.
 - `--foreground` keeps it attached to the terminal (useful for debugging); otherwise logs go to
-  `~/.config/ssh-manager/ssh-manager.log`.
+  `~/.config/hostrix/hostrix.log`.
 
 ## Inventory
 
@@ -106,12 +106,17 @@ All servers live in one JSON file. Its location depends on the OS:
 
 | OS | Inventory file |
 |---|---|
-| Linux / WSL | `~/.config/ssh-manager/inventory.json` |
-| macOS | `~/Library/Application Support/ssh-manager/inventory.json` |
-| Windows | `%APPDATA%\ssh-manager\inventory.json` |
+| Linux / WSL | `~/.config/hostrix/inventory.json` |
+| macOS | `~/Library/Application Support/hostrix/inventory.json` |
+| Windows | `%APPDATA%\hostrix\inventory.json` |
 
-Set `SSH_MANAGER_HOME` to use a different folder. The file is created on the first save, so it's fine
+Set `HOSTRIX_HOME` to use a different folder. The file is created on the first save, so it's fine
 if it doesn't exist yet.
+
+**Coming from SSH Manager?** Hostrix was called SSH Manager before. On its first start, Hostrix copies
+your servers and settings from the old `ssh-manager` folder into the `hostrix` folder and leaves the old
+folder untouched. If your `~/.ssh/config` has `Include ~/.config/ssh-manager/ssh_config`, change it to
+`Include ~/.config/hostrix/ssh_config`.
 
 ### Start from the sample
 
@@ -122,15 +127,15 @@ extra ssh options. Edit it with your servers, then use it in one of two ways.
 Copy it into place. This replaces any existing inventory:
 
 ```bash
-mkdir -p ~/.config/ssh-manager
-cp examples/inventory.example.json ~/.config/ssh-manager/inventory.json
+mkdir -p ~/.config/hostrix
+cp examples/inventory.example.json ~/.config/hostrix/inventory.json
 ```
 
 Or merge it into the inventory you already have. Servers whose `name` already exists are skipped, and
 settings are only filled in where they're still empty:
 
 ```bash
-ssh-manager import examples/inventory.example.json
+hostrix import examples/inventory.example.json
 ```
 
 A running app picks up changes to the file automatically. You can also add servers in the app with
@@ -168,16 +173,16 @@ Only `name` and `host` are required.
 
 ### Use the servers outside the app
 
-Every save also writes `~/.config/ssh-manager/ssh_config`. To use the same servers from any terminal
+Every save also writes `~/.config/hostrix/ssh_config`. To use the same servers from any terminal
 (`ssh vpc-app-01`, `scp`, VS Code Remote-SSH...), add this line at the **top** of `~/.ssh/config`:
 
 ```
-Include ~/.config/ssh-manager/ssh_config
+Include ~/.config/hostrix/ssh_config
 ```
 
 ## Terminal
 
-**Connect** opens a new terminal running `ssh-manager connect <name>`. Pick the terminal in
+**Connect** opens a new terminal running `hostrix connect <name>`. Pick the terminal in
 **Settings → Terminal**:
 
 - `auto` (recommended): Windows Terminal on WSL, Terminal.app on macOS, Windows Terminal or cmd on Windows,
@@ -195,22 +200,22 @@ and a **Use auto and retry** button that switches back to `auto` and reconnects.
   `x-terminal-emulator` often points to a Linux terminal that can't start under WSLg (for example, zutty
   aborts with `No suitable files for '9x18' found!`).
 - **Changes don't show up after upgrading:** an app started before the upgrade keeps running the old version.
-  Click **Quit** in the sidebar (closing the window may only hide it), then start `ssh-manager` again.
+  Click **Quit** in the sidebar (closing the window may only hide it), then start `hostrix` again.
 - **"VPN connected?" on every server:** the first hop isn't reachable on port 22. Connect the VPN, then
   click **Check all**.
-- **Logs:** `~/.config/ssh-manager/ssh-manager.log`, or run `ssh-manager --foreground` to see output in
+- **Logs:** `~/.config/hostrix/hostrix.log`, or run `hostrix --foreground` to see output in
   the terminal.
 
 ## CLI
 
 ```bash
-ssh-manager show | quit           # show / stop the background instance
-ssh-manager connect NAME          # ssh in the current terminal
-ssh-manager list
-ssh-manager command NAME          # print the full ssh command
-ssh-manager fetch-hostnames [NAME...]   # log in and record hostnames (skips ones already known)
-ssh-manager import FILE.json
-ssh-manager import-ssh-config [~/.ssh/config]
+hostrix show | quit           # show / stop the background instance
+hostrix connect NAME          # ssh in the current terminal
+hostrix list
+hostrix command NAME          # print the full ssh command
+hostrix fetch-hostnames [NAME...]   # log in and record hostnames (skips ones already known)
+hostrix import FILE.json
+hostrix import-ssh-config [~/.ssh/config]
 ```
 
 On Windows the app is GUI-only, so these commands are for Linux and macOS.
@@ -219,7 +224,7 @@ On Windows the app is GUI-only, so these commands are for Linux and macOS.
 
 ```bash
 python3 -m venv .venv && .venv/bin/pip install -e .
-.venv/bin/python -m sshmgr --foreground
+.venv/bin/python -m hostrix --foreground
 ```
 
 ### Building packages
@@ -240,7 +245,7 @@ Ubuntu, macOS and Windows, smoke-tests each build, and publishes a GitHub releas
 `SHA256SUMS.txt`, and the notes from `docs/releases/<tag>.md`:
 
 ```bash
-# bump __version__ in sshmgr/__init__.py and pyproject.toml, add docs/releases/vX.Y.Z.md, commit, then:
+# bump __version__ in hostrix/__init__.py and pyproject.toml, add docs/releases/vX.Y.Z.md, commit, then:
 git tag -a vX.Y.Z -m "vX.Y.Z" && git push origin vX.Y.Z
 ```
 
@@ -260,9 +265,9 @@ the [changelog](CHANGELOG.md) for what's new.
 
 ## Author
 
-Created and maintained by **Muhammad Imtiaz** ([@imtiaz9832](https://github.com/imtiaz9832)).
+Created and maintained by **Muhammad Imtiaz** ([@Muhammad-Imtiaz](https://github.com/Muhammad-Imtiaz)).
 
-If SSH Manager saves you time, a ⭐ on the repo helps others find it.
+If Hostrix saves you time, a ⭐ on the repo helps others find it.
 
 ## License
 

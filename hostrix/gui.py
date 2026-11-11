@@ -23,7 +23,7 @@ from .connect import (available_templates, display_command, fetch_hostname, key_
                       open_in_terminal, tcp_reachable)
 from .inventory import Inventory, InventoryError, Server, config_dir, parse_ssh_config
 
-ICON_PATH = Path(__file__).with_name("assets") / "ssh-manager.svg"
+ICON_PATH = Path(__file__).with_name("assets") / "hostrix.svg"
 ALL_GROUPS = "All servers"
 SEARCH_ROLE = Qt.UserRole
 SERVER_ROLE = Qt.UserRole + 1
@@ -522,8 +522,8 @@ class SettingsDialog(QDialog):
         layout.addWidget(form_section(
             "Background", [("", self.background), ("", self.autostart)],
             "When off, the close button quits the app. Use “Run in background” in the sidebar to hide it "
-            "instead. Run ssh-manager again (or open it from the app menu) to bring the window back; "
-            "“ssh-manager quit” stops it."))
+            "instead. Run hostrix again (or open it from the app menu) to bring the window back; "
+            "“hostrix quit” stops it."))
         info = label(f"Inventory: {inv.path}\nFor ~/.ssh/config:  Include {inv.ssh_config_path}", muted=True, wrap=True)
         info.setTextInteractionFlags(Qt.TextSelectableByMouse)
         layout.addWidget(info)
@@ -857,7 +857,7 @@ class MainWindow(QMainWindow):
         lay.addWidget(more)
         lay.addWidget(side_button("Settings", "settings", self.open_settings))
         run_bg = side_button("Run in background", "background", self.hide_to_background)
-        run_bg.setToolTip("Hide the window but keep the app running (run ssh-manager to bring it back)")
+        run_bg.setToolTip("Hide the window but keep the app running (run hostrix to bring it back)")
         lay.addWidget(run_bg)
         lay.addWidget(side_button("About", "info", lambda: AboutDialog(self).exec()))
         lay.addWidget(side_button("Quit", "power", self.quit_app))
@@ -1222,12 +1222,12 @@ class MainWindow(QMainWindow):
 
     def hide_to_background(self):
         if not self.inv.settings.background_hint_shown:
-            where = "the tray icon" if self.tray else "the app menu, or run  ssh-manager  in a terminal"
+            where = "the tray icon" if self.tray else "the app menu, or run  hostrix  in a terminal"
             QMessageBox.information(
                 self, "Still running",
                 f"{APP_NAME} keeps running in the background.\n\n"
                 f"To bring it back, use {where}.\n"
-                "To stop it, use Quit (Ctrl+Q) or run  ssh-manager quit.")
+                "To stop it, use Quit (Ctrl+Q) or run  hostrix quit.")
             self.inv.settings.background_hint_shown = True
             self._save()
         self.save_ui_state()
@@ -1457,7 +1457,7 @@ def make_app() -> QApplication:
         os.environ["QT_QPA_PLATFORM"] = "wayland;xcb" if os.environ.get("WAYLAND_DISPLAY") else "xcb"
     app = QApplication.instance() or QApplication(sys.argv)
     app.setApplicationName(APP_NAME)
-    app.setDesktopFileName("ssh-manager")
+    app.setDesktopFileName("hostrix")
     app.setStyle("Fusion")
     if ICON_PATH.exists():
         app.setWindowIcon(QIcon(str(ICON_PATH)))

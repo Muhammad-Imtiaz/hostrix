@@ -27,8 +27,8 @@ body:
   - type: input
     id: version
     attributes:
-      label: SSH Manager version
-      description: Shown in **About** in the sidebar, or run `ssh-manager --version`
+      label: Hostrix version
+      description: Shown in **About** in the sidebar, or run `hostrix --version`
       placeholder: "0.5.0"
     validations:
       required: true
@@ -53,5 +53,5 @@ body:
     id: logs
     attributes:
       label: Error message or log
-      description: Linux/macOS log is in `~/.config/ssh-manager/ssh-manager.log` (or run with `--foreground`)
+      description: Linux/macOS log is in `~/.config/hostrix/hostrix.log` (or run with `--foreground`)
       render: text
