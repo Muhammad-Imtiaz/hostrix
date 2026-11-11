@@ -3,6 +3,10 @@
 All notable changes to Hostrix (called SSH Manager before the rename). Each version has full release
 notes on the [releases page](https://github.com/Muhammad-Imtiaz/hostrix/releases).
 
+## 0.5.1
+
+- Fix the macOS build (the app bundle was removed while being renamed to Hostrix.app)
+
 ## 0.5.0
 
 - **Renamed to Hostrix:** the app, the `hostrix` command, the packages and the repository

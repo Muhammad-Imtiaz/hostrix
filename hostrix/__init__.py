@@ -1,6 +1,6 @@
 """Hostrix - a small GUI inventory for SSH servers."""
 
-__version__ = "0.5.0"
+__version__ = "0.5.1"
 APP_NAME = "Hostrix"
 APP_ID = "hostrix"
 AUTHOR = "Muhammad Imtiaz"

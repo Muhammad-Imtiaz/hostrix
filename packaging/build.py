@@ -111,8 +111,13 @@ Description: GUI inventory and launcher for SSH servers
 def macos():
     built = DIST / "hostrix.app"
     app = DIST / f"{APP_NAME}.app"
+    # hostrix.app -> Hostrix.app differs only in case, and macOS file names usually ignore case:
+    # go through a temporary name so removing an old Hostrix.app can't delete the fresh build
+    tmp = DIST / "hostrix-build.app"
+    shutil.rmtree(tmp, ignore_errors=True)
+    built.rename(tmp)
     shutil.rmtree(app, ignore_errors=True)
-    built.rename(app)
+    tmp.rename(app)
     plist_path = app / "Contents" / "Info.plist"
     plist = plistlib.loads(plist_path.read_bytes())
     plist.update({

@@ -10,8 +10,8 @@ authors:
 repository-code: "https://github.com/Muhammad-Imtiaz/hostrix"
 url: "https://github.com/Muhammad-Imtiaz/hostrix"
 license: Apache-2.0
-version: "0.5.0"
-date-released: "2026-11-07"
+version: "0.5.1"
+date-released: "2026-11-11"
 keywords:
   - ssh
   - ssh-client
