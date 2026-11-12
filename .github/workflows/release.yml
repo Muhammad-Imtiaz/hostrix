@@ -129,7 +129,7 @@ jobs:
           notes="docs/releases/${GITHUB_REF_NAME}.md"
           if [ -f "$notes" ]; then cp "$notes" notes.md; else echo "Hostrix ${GITHUB_REF_NAME}" > notes.md; fi
 
-      - uses: softprops/action-gh-release@v2
+      - uses: softprops/action-gh-release@v3
         with:
           name: Hostrix ${{ github.ref_name }}
           body_path: notes.md
