@@ -729,7 +729,9 @@ class MainWindow(QMainWindow):
         # pick up edits made outside the GUI (CLI, text editor, another window).
         # Watch the folder: saves replace the file, which drops a file watch.
         self._own_mtime = self._inventory_mtime()
-        self.watcher = QFileSystemWatcher([str(inv.path.parent)] if inv.path.parent.exists() else [], self)
+        # create the folder up front so a first-time user's inventory is watched once it's saved
+        inv.path.parent.mkdir(parents=True, exist_ok=True)
+        self.watcher = QFileSystemWatcher([str(inv.path.parent)], self)
         self._reload_timer = QTimer(self, singleShot=True, interval=300, timeout=self._reload_from_disk)
         self.watcher.directoryChanged.connect(lambda _: self._reload_timer.start())
 
@@ -1030,7 +1032,8 @@ class MainWindow(QMainWindow):
         self.table.setVisible(not empty)
         self.empty.setVisible(empty)
         if empty:
-            self.empty.setText("No servers yet.\nClick “Add server” to create one." if not self.inv.servers
+            self.empty.setText("No servers yet.\nClick “Add server”, or bring in your existing hosts with\n"
+                               "Import / Export → Import ~/.ssh/config." if not self.inv.servers
                                else "No servers match your search.")
 
     def reload(self, select: str | None = None):

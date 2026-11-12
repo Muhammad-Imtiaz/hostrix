@@ -46,8 +46,8 @@ def send_command(message: str, timeout_ms: int = 500) -> bool:
     from PySide6.QtCore import QCoreApplication
     from PySide6.QtNetwork import QLocalSocket
 
-    _app = QCoreApplication.instance() or QCoreApplication([])
-    sock = QLocalSocket()
+    app = QCoreApplication.instance() or QCoreApplication([])  # sockets need an application object
+    sock = QLocalSocket(app)
     sock.connectToServer(SOCKET_NAME)
     if not sock.waitForConnected(timeout_ms):
         return False

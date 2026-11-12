@@ -42,6 +42,7 @@ def pyinstaller():
             "--add-data", f"{ROOT / 'hostrix' / 'assets'}{os.pathsep}hostrix/assets",
             "--add-data", f"{ROOT / 'LICENSE'}{os.pathsep}.",
             "--add-data", f"{ROOT / 'NOTICE'}{os.pathsep}.",
+            "--add-data", f"{ROOT / 'THIRD-PARTY-NOTICES.md'}{os.pathsep}.",
             "--paths", str(ROOT), "--hidden-import", "hostrix.gui",
             "--exclude-module", "tkinter",
             "--distpath", str(DIST), "--workpath", str(ROOT / "build" / "pyinstaller"),
@@ -66,7 +67,7 @@ def linux():
         tar.add(app, arcname=f"{top}/hostrix")
         tar.add(ROOT / "packaging" / "hostrix.desktop", arcname=f"{top}/hostrix.desktop")
         tar.add(ROOT / "hostrix" / "assets" / "hostrix.svg", arcname=f"{top}/hostrix.svg")
-        for doc in ("README.md", "LICENSE", "NOTICE"):
+        for doc in ("README.md", "LICENSE", "NOTICE", "THIRD-PARTY-NOTICES.md"):
             tar.add(ROOT / doc, arcname=f"{top}/{doc}")
 
     if not shutil.which("dpkg-deb"):
@@ -86,6 +87,7 @@ def linux():
         shutil.copy(from_png, pkg / "usr/share/icons/hicolor/256x256/apps/hostrix.png")
     shutil.copy(ROOT / "README.md", pkg / "usr/share/doc/hostrix/")
     shutil.copy(ROOT / "NOTICE", pkg / "usr/share/doc/hostrix/")
+    shutil.copy(ROOT / "THIRD-PARTY-NOTICES.md", pkg / "usr/share/doc/hostrix/")
     (pkg / "usr/share/doc/hostrix/copyright").write_text(
         "Hostrix\nCopyright 2026 Muhammad Imtiaz <https://github.com/Muhammad-Imtiaz>\n"
         "License: Apache-2.0\n\n" + (ROOT / "LICENSE").read_text())
@@ -145,6 +147,7 @@ def windows():
     base = f"hostrix-{VERSION}-windows-x64"
     for doc in ("LICENSE", "NOTICE"):
         shutil.copy(ROOT / doc, app / f"{doc}.txt")
+    shutil.copy(ROOT / "THIRD-PARTY-NOTICES.md", app / "THIRD-PARTY-NOTICES.txt")
     shutil.make_archive(str(RELEASE / f"{base}-portable"), "zip", root_dir=DIST, base_dir="hostrix")
 
     iscc = shutil.which("iscc") or next(

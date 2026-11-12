@@ -46,7 +46,7 @@ click **Connect**, and a new terminal opens with the session ready.
 - Per-server user, key, port and extra `ssh -o` options, with defaults for everything else
 
 **Know what's reachable**
-- **Check all** tests port 22 on every server in parallel and shows a summary
+- **Check all** tests every server's SSH port in parallel (through its jump host's first hop) and shows a summary
 - VPN-only servers are tagged, with a "VPN connected?" hint when they're unreachable
 - **Fetch hostname** logs in and records each server's real hostname
 
@@ -75,7 +75,7 @@ Ubuntu, macOS and Windows 10/11.
 | System | Download | Install |
 |---|---|---|
 | Ubuntu / Debian (x86_64) | [`hostrix-linux-amd64.deb`](https://github.com/Muhammad-Imtiaz/hostrix/releases/latest/download/hostrix-linux-amd64.deb) | `sudo apt install ./hostrix-linux-amd64.deb` |
-| Other Linux (x86_64) | [`hostrix-linux-x86_64.tar.gz`](https://github.com/Muhammad-Imtiaz/hostrix/releases/latest/download/hostrix-linux-x86_64.tar.gz) | Extract and run `hostrix/hostrix` |
+| Other Linux (x86_64) | [`hostrix-linux-x86_64.tar.gz`](https://github.com/Muhammad-Imtiaz/hostrix/releases/latest/download/hostrix-linux-x86_64.tar.gz) | Extract and run `hostrix-<version>/hostrix/hostrix` |
 | macOS 13+ (Apple Silicon) | [`hostrix-macos-arm64.dmg`](https://github.com/Muhammad-Imtiaz/hostrix/releases/latest/download/hostrix-macos-arm64.dmg) | Open it and drag **Hostrix** to Applications |
 | Windows 10 / 11 (x64) | [`hostrix-windows-x64-setup.exe`](https://github.com/Muhammad-Imtiaz/hostrix/releases/latest/download/hostrix-windows-x64-setup.exe) | Run the installer (no admin needed) |
 | Windows, portable | [`hostrix-windows-x64-portable.zip`](https://github.com/Muhammad-Imtiaz/hostrix/releases/latest/download/hostrix-windows-x64-portable.zip) | Extract and run `hostrix.exe` |
@@ -98,7 +98,7 @@ When upgrading, click **Quit** in the running app first, so the new version star
 - On desktops with a system tray, a tray icon shows/hides the window and has a quick-connect menu.
   On Linux desktops (not WSL), Settings can start it in the background when you log in.
 - `--foreground` keeps it attached to the terminal (useful for debugging); otherwise logs go to
-  `~/.config/hostrix/hostrix.log`.
+  `hostrix.log` next to the inventory (see [Inventory](#inventory) for the folder on each OS).
 
 ## Inventory
 
@@ -218,7 +218,12 @@ hostrix import FILE.json
 hostrix import-ssh-config [~/.ssh/config]
 ```
 
-On Windows the app is GUI-only, so these commands are for Linux and macOS.
+On Windows the app is GUI-only, so these commands are for Linux and macOS. The `.deb` puts `hostrix` on
+your `PATH`. On macOS, the command is inside the app; add a link to it once:
+
+```bash
+sudo ln -sf /Applications/Hostrix.app/Contents/MacOS/hostrix /usr/local/bin/hostrix
+```
 
 ## Development
 
@@ -234,7 +239,7 @@ on Linux, a `.dmg` on macOS, and a setup `.exe` (needs [Inno Setup](https://jrso
 portable `.zip` on Windows.
 
 ```bash
-pip install -e . pyinstaller
+pip install -e . "pyinstaller>=6"
 python packaging/build.py          # or packaging/build.sh on Linux/macOS (uses .venv)
 ```
 
@@ -272,5 +277,6 @@ If Hostrix saves you time, a ⭐ on the repo helps others find it.
 ## License
 
 [Apache License 2.0](LICENSE). Free for personal and commercial use. If you redistribute it or build on it,
-keep the [NOTICE](NOTICE) file with the author credit.
+keep the [NOTICE](NOTICE) file with the author credit. The downloadable packages also include Qt, PySide6 and
+Python under their own licenses; see [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
 

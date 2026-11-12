@@ -28,13 +28,14 @@ def render(size: int) -> QImage:
 
 
 def main():
-    _app = QGuiApplication([])  # QSvgRenderer needs a GUI application
+    app = QGuiApplication([])  # QSvgRenderer needs a GUI application
     OUT.mkdir(parents=True, exist_ok=True)
     png = OUT / "hostrix.png"
     render(1024).save(str(png))
     base = Image.open(png)
     base.save(OUT / "hostrix.ico", sizes=[(s, s) for s in (16, 24, 32, 48, 64, 128, 256)])
     base.save(OUT / "hostrix.icns")
+    app.quit()
     print("wrote", ", ".join(p.name for p in sorted(OUT.iterdir())))
 
 
