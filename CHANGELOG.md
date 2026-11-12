@@ -3,6 +3,13 @@
 All notable changes to Hostrix (called SSH Manager before the rename). Each version has full release
 notes on the [releases page](https://github.com/Muhammad-Imtiaz/hostrix/releases).
 
+## 0.5.2
+
+- Packages include THIRD-PARTY-NOTICES for the bundled Qt, PySide6, Python and PyInstaller
+- First start: the empty list suggests importing ~/.ssh/config, and no warning when the settings folder is new
+- CI on every push and pull request, and Dependabot for dependency updates
+- README: tarball path, log location on each OS, the `hostrix` command on macOS
+
 ## 0.5.1
 
 - Fix the macOS build (the app bundle was removed while being renamed to Hostrix.app)

@@ -29,7 +29,7 @@ body:
     attributes:
       label: Hostrix version
       description: Shown in **About** in the sidebar, or run `hostrix --version`
-      placeholder: "0.5.1"
+      placeholder: "0.5.2"
     validations:
       required: true
   - type: dropdown
